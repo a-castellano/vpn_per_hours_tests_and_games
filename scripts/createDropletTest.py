@@ -1,6 +1,12 @@
 from time import sleep
 import os
 import digitalocean
+import route53
+
+conn = route53.connect(
+    aws_access_key_id='AKIAIRXB2NBW6JBJSMRQ',
+    aws_secret_access_key='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',
+)
 
 APIToken = '82bede0e660f5872d5988a4785fa6a10aa8f55cb7e52882906ca89c1b6a2c773'
 dropletName = 'test'
@@ -33,4 +39,7 @@ while response != 0:
 	response = os.system( "ping -c 1 " + str(ip) )
 
 
-print "LISTO"
+print "Lanzamos script de instalacion (ansible)"
+
+print "Apuntamos la maquina"
+
