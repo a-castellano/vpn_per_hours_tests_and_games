@@ -1,0 +1,35 @@
+---
+- hosts: target
+  remote_user: root
+
+
+  tasks:
+   - name: update the server
+     apt: update_cache=yes
+   - name: upgrade the server
+     apt: upgrade=full
+   - name: install required software
+     apt: name={{item}} state=installed update_cache=yes
+     with_items:
+     - pptpd
+
+   - name: pptpd.conf
+     template: src=files/pptpd.conf.j2 dest=/etc/pptpd.conf owner=root group=root mode=0644
+
+   - name: pptpd-options
+     template: src=files/pptpd-options.j2 dest=/etc/ppp/pptpd-options owner=root group=root mode=0644
+
+   - name: chap-secrets
+     template: src=files/chap-secrets.j2 dest=/etc/ppp/chap-secrets owner=root group=root mode=0644
+
+   - name: restart pptpd
+     service: name=pptpd state=restarted
+
+   - name: sysctl.conf
+     template: src=files/sysctl.conf.j2 dest=/etc/sysctl.conf owner=root group=root mode=0644
+
+   - name: sysctl -p
+     shell: sysctl -p
+
+   - name: iptabes
+     shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE && iptables-save
