@@ -1,5 +1,6 @@
 from time import sleep
 import os
+import subprocess
 import digitalocean
 import route53
 
@@ -33,6 +34,27 @@ dropletData = manager.get_droplet(dropletID)
 ip = dropletData.ip_address
 print ip
 
+print "Apuntamos la maquina"
+conn = route53.connect(
+    aws_access_key_id='AKIAIRXB2NBW6JBJSMRQ',
+    aws_secret_access_key='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',
+)
+
+zone = conn.get_hosted_zone_by_id('ZPEB3E12BAWA8')
+name_to_match = 'testuk.vpn.windmaker.net.'
+
+encontrado = False
+for record_set in zone.record_sets:
+        print(record_set.name)
+        if record_set.name == name_to_match:
+                print("es este")
+                break;
+
+if not encontrado:
+        print "Lo creamos"
+        new_record, change_info = zone.create_a_record(name='testuk.vpn.windmaker.net.',values=[str(ip)],)
+
+
 response = os.system( "ping -c 1 " + str(ip) )
 while response != 0:
 	sleep(0.5)
@@ -40,6 +62,9 @@ while response != 0:
 
 
 print "Lanzamos script de instalacion (ansible)"
-
-print "Apuntamos la maquina"
+inventory = open('inventories/inventory.ini','w')
+inventory.write('[target]\n')
+inventory.write(ip + '\n')
+inventory.close()
+subprocess.check_call('/usr/bin/ansible-playbook ../ansible/pptp_setup.yml -i inventories/inventory.ini', shell=True)
 
