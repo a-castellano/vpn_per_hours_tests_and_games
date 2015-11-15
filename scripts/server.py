@@ -36,6 +36,6 @@ class GetHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     from BaseHTTPServer import HTTPServer
-    server = HTTPServer(('192.168.56.101', 8888), GetHandler)
+    server = HTTPServer(('192.168.155.1', 8888), GetHandler)
     print 'Starting server, use <Ctrl-C> to stop'
     server.serve_forever()
