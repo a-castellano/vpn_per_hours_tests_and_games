@@ -18,7 +18,7 @@ manager = digitalocean.Manager(token=APIToken)
 
 droplet = digitalocean.Droplet(token=APIToken,
 name=dropletName,
-region='lon1', # New York 2
+region='ams2', # New York 2
 image='ubuntu-14-04-x64', # Ubuntu 14.04 x64
 ssh_keys = sshKeyList,
 size_slug='512mb', # 512MB
