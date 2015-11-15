@@ -17,8 +17,23 @@ dropletName = 'test'
 dropletRegion = 'lon1'
 sshKeyList = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD04ZoHu9qszy61gVeggjYiR/KLdZrFOpT6qiULOj1xc4ZX6TuHLFE1WklzYjRhqukVNPRlsg3lxG8yBOxSQmAmKYQgJr2lA0JqORpRWWodDqKp7a0WKuaur6UJeTSqUUrOJq/hktUcTLlD3x5miumx1g8+QjkSi4zVe4UXenv8fnddcZJD8LxU6aNJzDmlEDw/3YjADdUhxTS6n95WfoRPD9oS96BlEIBNhsSZExtchs84CNR/g8Rp+QxchySQ/nqaJO6yHBKK/ZUFySQYwg+UfRPxWK9z8JV+VFrWVKZSJ7qiuWCnr9R4IMMLhKhpwFUuqqO57AZghQY4JyQ5XUxh root@Paula"]
 
+'''
+1 -> USA
+2 -> Germany
+3 -> Singapore
+4 -> UK
+5 -> Amsterdam
+6 -> Canada
+'''
+providers = ['DigitalOcean']
+
 zones = {
-	1 : 'nyc1'
+    1: {'DigitalOcean':['nyc1','nyc2','nyc3','sfo1']},
+    2: {'DigitalOcean':['fra1']},
+    3: {'DigitalOcean':['sgp1']},
+    4: {'DigitalOcean':['lon1']},
+    5: {'DigitalOcean':['ams1','ams2','ams3']},
+    6: {'DigitalOcean':['tor11']}
 }
 
 
@@ -43,12 +58,12 @@ class GetHandler(BaseHTTPRequestHandler):
             print(arguments)
             if 'token' in arguments:
                 print "Token ->" + arguments['token']
-		cursor=db.cursor()
-		query = ("SELECT user_id, zone FROM servers WHERE token='{}';".format(arguments['token']))
-		cursor.execute(query)
-		serverToCreate = cursor.fetchone() 
-		cursor.close()
-		print serverToCreate
+        cursor=db.cursor()
+        query = ("SELECT user_id, zone FROM servers WHERE token='{}';".format(arguments['token']))
+        cursor.execute(query)
+        serverToCreate = cursor.fetchone()
+        cursor.close()
+        print serverToCreate
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
         message_parts.append('')
