@@ -61,6 +61,32 @@ def getUsername(userId):
     # userId and zone
     return data[0]
 
+def pointIP(url,ip):
+    print "Apuntamos la maquina"
+    conn = route53.connect(
+        aws_access_key_id='AKIAIRXB2NBW6JBJSMRQ',
+        aws_secret_access_key='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',
+    )
+
+    zone = conn.get_hosted_zone_by_id('ZPEB3E12BAWA8')
+    name_to_match = url + '.'
+
+    encontrado = False
+    for record_set in zone.record_sets:
+        print(record_set.name)
+        if record_set.name == name_to_match:
+            encontrado = True
+	    #De momento hago un update porque pueden existir dos urls iguales
+            record_set.delete()
+            print "Borrado"
+            new_record, change_info = zone.create_a_record(name=name_to_match,values=[str(ip)],)
+            break;
+
+    if not encontrado:
+       print "Lo creamos"
+       new_record, change_info = zone.create_a_record(name=name_to_match,values=[str(ip)],)
+   
+       
 
 def getInfoFromToken(token):
     cursor = db.cursor()
@@ -69,10 +95,13 @@ def getInfoFromToken(token):
     serverToCreate = cursor.fetchone()
     cursor.close()
     # machineId and zone
-    return serverToCreate[0], serverToCreate[1]
+    if serverToCreate:
+    	return serverToCreate[0], serverToCreate[1]
+    else:
+	return None, None
 
 
-def createDropletDitialOcean(url, region):
+def createDropletDigitalOcean(url, region):
     manager = digitalocean.Manager(token=APIToken)
     droplet = digitalocean.Droplet(token=APIToken,
                                    name=url,
@@ -82,12 +111,15 @@ def createDropletDitialOcean(url, region):
                                    size_slug='512mb',  # 512MB
                                    backups=False)
     droplet.create()
-    dropletID = droplet
-    dropletData = manager.get_droplet(dropletID)
+    print "Creado"
+    dropletID = str(droplet).split(' ')[0]
     print dropletID
-    print "HOLA"
-    sleep(30)
+    sleep(10)
+    dropletData = manager.get_droplet(dropletID)
     ip = dropletData.ip_address
+    pointIP(url,ip)
+    sleep(30)
+    #ip = dropletData.ip_address
     return ip
 
 
@@ -105,7 +137,7 @@ def createDroplet(zone, userId):
     print url
     print region
     if provider == 'DigitalOcean':
-        ip = createDropletDitialOcean(url, region)
+        ip = createDropletDigitalOcean(url, region)
         print ip
 
 
@@ -124,9 +156,10 @@ class GetHandler(BaseHTTPRequestHandler):
             if 'token' in arguments:
                 print "Token ->" + arguments['token']
                 userId, zone = getInfoFromToken(arguments['token'])
-                print "Machine id - {}".format(userId)
-                print "Zone - {}".format(zone)
-                createDroplet(int(zone), userId)
+		if userId != None:
+                    print "Machine id - {}".format(userId)
+                    print "Zone - {}".format(zone)
+                    createDroplet(int(zone), userId)
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
         message_parts.append('')
