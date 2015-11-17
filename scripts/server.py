@@ -61,7 +61,8 @@ def getUsername(userId):
     # userId and zone
     return data[0]
 
-def pointIP(url,ip):
+
+def pointIP(url, ip):
     print "Apuntamos la maquina"
     conn = route53.connect(
         aws_access_key_id='AKIAIRXB2NBW6JBJSMRQ',
@@ -76,17 +77,16 @@ def pointIP(url,ip):
         print(record_set.name)
         if record_set.name == name_to_match:
             encontrado = True
-	    #De momento hago un update porque pueden existir dos urls iguales
+            # De momento hago un update porque pueden existir dos urls iguales
             record_set.delete()
             print "Borrado"
-            new_record, change_info = zone.create_a_record(name=name_to_match,values=[str(ip)],)
+            new_record, change_info = zone.create_a_record(name=name_to_match, values=[str(ip)], )
             break;
 
     if not encontrado:
-       print "Lo creamos"
-       new_record, change_info = zone.create_a_record(name=name_to_match,values=[str(ip)],)
-   
-       
+        print "Lo creamos"
+        new_record, change_info = zone.create_a_record(name=name_to_match, values=[str(ip)], )
+
 
 def getInfoFromToken(token):
     cursor = db.cursor()
@@ -96,9 +96,9 @@ def getInfoFromToken(token):
     cursor.close()
     # machineId and zone
     if serverToCreate:
-    	return serverToCreate[0], serverToCreate[1]
+        return serverToCreate[0], serverToCreate[1]
     else:
-	return None, None
+        return None, None
 
 
 def createDropletDigitalOcean(url, region):
@@ -117,11 +117,18 @@ def createDropletDigitalOcean(url, region):
     sleep(10)
     dropletData = manager.get_droplet(dropletID)
     ip = dropletData.ip_address
-    pointIP(url,ip)
+    pointIP(url, ip)
     sleep(30)
-    #ip = dropletData.ip_address
-    return ip
+    # ip = dropletData.ip_address
+    return ip,dropletID
 
+
+def setUpVPNServer(userId,token,url,dropletID):
+    cursor = db.cursor()
+    query = ("SELECT name, password FROM vpnusers WHERE user_id={};".format(userId))
+    cursor.execute(query)
+    users = cursor.fetchall()
+    print users
 
 def createDroplet(zone, userId, token):
     zoneinfo = zones[zone]
@@ -137,13 +144,26 @@ def createDroplet(zone, userId, token):
     print url
     print region
     cursor = db.cursor()
-    update_query = ("UPDATE servers SET name='{}' , true_zone='{}' , provider='{}' , status='Setting up...'  WHERE token='{}';".format(url,region,provider,token))
+    update_query = ("UPDATE servers SET name='{}' , true_zone='{}' , provider='{}' , status='Setting up...'  WHERE token='{}';".format(url, region, provider, token))
     cursor.execute(update_query)
     db.commit()
     cursor.close()
     if provider == 'DigitalOcean':
-        ip = createDropletDigitalOcean(url, region)
+        ip , dropletID = createDropletDigitalOcean(url, region)
         print ip
+
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET machine_id={} WHERE token='{}';".format(dropletID, token))
+    cursor.execute(update_query)
+    db.commit()
+    cursor.close()
+
+    response = os.system("ping -c 1 " + ip)
+    while response != 0:
+        sleep(0.5)
+        response = os.system("ping -c 1 " + ip)
+    print "Set up config"
+    setUpVPNServer(userId,token,url,dropletID)
 
 
 class GetHandler(BaseHTTPRequestHandler):
@@ -161,7 +181,7 @@ class GetHandler(BaseHTTPRequestHandler):
             if 'token' in arguments:
                 print "Token ->" + arguments['token']
                 userId, zone = getInfoFromToken(arguments['token'])
-		if userId != None:
+                if userId != None:
                     print "Machine id - {}".format(userId)
                     print "Zone - {}".format(zone)
                     createDroplet(int(zone), userId, arguments['token'])
