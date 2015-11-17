@@ -123,7 +123,7 @@ def createDropletDigitalOcean(url, region):
     return ip
 
 
-def createDroplet(zone, userId):
+def createDroplet(zone, userId, token):
     zoneinfo = zones[zone]
     candidateProviders = []
     for provider in providers:
@@ -133,9 +133,14 @@ def createDroplet(zone, userId):
     regions = zoneinfo[provider]
     region = regions[random.randint(0, len(regions) - 1)]
     username = getUsername(userId)
-    url = zoneNames[zone] + '.' + username + '.windmaker.net'
+    url = zoneNames[zone] + '.' + username + '.vpn.windmaker.net'
     print url
     print region
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET name='{}' , true_zone='{}' , provider='{}' , status='Setting up...'  WHERE token='{}';".format(url,region,provider,token))
+    cursor.execute(update_query)
+    db.commit()
+    cursor.close()
     if provider == 'DigitalOcean':
         ip = createDropletDigitalOcean(url, region)
         print ip
@@ -159,7 +164,7 @@ class GetHandler(BaseHTTPRequestHandler):
 		if userId != None:
                     print "Machine id - {}".format(userId)
                     print "Zone - {}".format(zone)
-                    createDroplet(int(zone), userId)
+                    createDroplet(int(zone), userId, arguments['token'])
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
         message_parts.append('')
