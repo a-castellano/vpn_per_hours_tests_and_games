@@ -20,7 +20,7 @@
      template: src=files/pptpd-options.j2 dest=/etc/ppp/pptpd-options owner=root group=root mode=0644
 
    - name: chap-secrets
-     template: src=files/chap-secrets.j2 dest=/etc/ppp/chap-secrets owner=root group=root mode=0644
+     template: src=files/secrets/{{secrets_file}} dest=/etc/ppp/chap-secrets owner=root group=root mode=0644
 
    - name: restart pptpd
      service: name=pptpd state=restarted
@@ -33,3 +33,6 @@
 
    - name: iptabes
      shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE && iptables-save
+
+   - name: save iptables
+     command: iptables-save

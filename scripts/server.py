@@ -7,6 +7,7 @@ import subprocess
 import digitalocean
 import route53
 import random
+import threading  
 
 conn = route53.connect(
     aws_access_key_id='AKIAIRXB2NBW6JBJSMRQ',
@@ -50,7 +51,6 @@ user = 'vpn'
 password = 'XLRc3H1y4Db0G4qR630Qk2xPF3D88P'
 database = 'vpn'
 db = MySQLdb.connect(host=db_host, user=user, passwd=password, db=database)
-
 
 def getUsername(userId):
     cursor = db.cursor()
@@ -123,12 +123,32 @@ def createDropletDigitalOcean(url, region):
     return ip,dropletID
 
 
-def setUpVPNServer(userId,token,url,dropletID):
+def setUpVPNServer(userId,token,url,dropletID,ip):
     cursor = db.cursor()
     query = ("SELECT name, password FROM vpnusers WHERE user_id={};".format(userId))
     cursor.execute(query)
     users = cursor.fetchall()
-    print users
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET status='Installing VPN server.'  WHERE token='{}';".format(token))
+    cursor.execute(update_query)
+    db.commit()
+    cursor.close()
+
+    userfile = open("../ansible/files/secrets/"+url,'w')
+    index=210
+    for user in users:
+        userfile.write(user[0]+'\t*\t'+user[1]+'\t*\t192.168.155.'+str(index)+'\n')
+        index += 1
+    userfile.close()
+
+    inventoryfile = open("../ansible/inventories/"+url,'w')
+    inventoryfile.write('[target]\n{}\n'.format(ip))
+    inventoryfile.close()
+
+    print "Lanzamos script de instalacion (ansible)"
+    subprocess.check_call('/usr/bin/ansible-playbook ../ansible/pptp_setup.yml -i ../ansible/inventories/{} -e "secrets_file={}"'.format(url,url), shell=True)
+    
+
 
 def createDroplet(zone, userId, token):
     zoneinfo = zones[zone]
@@ -162,8 +182,27 @@ def createDroplet(zone, userId, token):
     while response != 0:
         sleep(0.5)
         response = os.system("ping -c 1 " + ip)
+    sleep(10)
     print "Set up config"
-    setUpVPNServer(userId,token,url,dropletID)
+    setUpVPNServer(userId,token,url,dropletID,ip)
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET status='Running'  WHERE token='{}';".format(token))
+    cursor.execute(update_query)
+    db.commit()
+    cursor.close()
+
+
+class theThread(threading.Thread):
+    def __init__(self, zone, userId, token):
+         threading.Thread.__init__(self)
+         self.zone = zone
+         self.userId = userId
+         self.zone = zone
+         self.token = token
+
+    def run(self):
+         createDroplet(self.zone, self.userId, self.token)
+
 
 
 class GetHandler(BaseHTTPRequestHandler):
@@ -184,7 +223,9 @@ class GetHandler(BaseHTTPRequestHandler):
                 if userId != None:
                     print "Machine id - {}".format(userId)
                     print "Zone - {}".format(zone)
-                    createDroplet(int(zone), userId, arguments['token'])
+		    t = theThread(int(zone), userId, arguments['token'])  
+                    t.start()  
+                    #createDroplet(int(zone), userId, arguments['token'])
         for name, value in sorted(self.headers.items()):
             message_parts.append('%s=%s' % (name, value.rstrip()))
         message_parts.append('')
@@ -198,6 +239,6 @@ class GetHandler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     from BaseHTTPServer import HTTPServer
 
-    server = HTTPServer(('192.168.155.1', 8888), GetHandler)
+    server = HTTPServer(('0.0.0.0', 8888), GetHandler)
     print 'Starting server, use <Ctrl-C> to stop'
     server.serve_forever()
