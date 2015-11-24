@@ -187,7 +187,7 @@ def createDroplet(zone, userId, token):
         print ip
 
     cursor = db.cursor()
-    update_query = ("UPDATE servers SET machine_id={} WHERE token='{}';".format(dropletID, token))
+    update_query = ("UPDATE servers SET machine_id={} , ip='{}' WHERE token='{}';".format(dropletID, ip, token))
     cursor.execute(update_query)
     db.commit()
     cursor.close()
@@ -207,11 +207,15 @@ def createDroplet(zone, userId, token):
 
 def poweroff(token):
     cursor = db.cursor()
-    query = ("SELECT machine_id , provider FROM servers WHERE token='{}';".format(token))
+    query = ("SELECT machine_id , provider, ip FROM servers WHERE token='{}';".format(token))
     cursor.execute(query)
     results = cursor.fetchall()[0]
     cursor = db.cursor()
     print results
+    #cursor = db.cursor()
+    #update_query = ("UPDATE servers SET status='Powering Off'  WHERE token='{}';".format(token))
+    #cursor.execute(update_query)
+    #db.commit()
     if results[1] == 'DigitalOcean':
          manager = digitalocean.Manager(token=APIToken)
          my_droplets = manager.get_all_droplets()
@@ -219,9 +223,66 @@ def poweroff(token):
               if str(droplet).split(' ')[0] == str(results[0]):
                    print "Lo apago"
                    droplet.shutdown()
-              #print droplet
-              #print str(droplet).split(' ') 
-    #droplet.shutdown()
+    ip = results[2]
+    response = os.system("ping -c 1 " + ip)
+    while response == 0:
+        sleep(0.5)
+        response = os.system("ping -c 1 " + ip)
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET status='Powered off'  WHERE token='{}';".format(token))
+    cursor.execute(update_query)
+    db.commit()
+    cursor.close()
+
+def poweron(token):
+    cursor = db.cursor()
+    query = ("SELECT machine_id , provider , ip FROM servers WHERE token='{}';".format(token))
+    cursor.execute(query)
+    results = cursor.fetchall()[0]
+    cursor = db.cursor()
+    print results
+    #cursor = db.cursor()
+    #update_query = ("UPDATE servers SET status='Powering on'  WHERE token='{}';".format(token))
+    #cursor.execute(update_query)
+    #db.commit()
+    if results[1] == 'DigitalOcean':
+         manager = digitalocean.Manager(token=APIToken)
+         my_droplets = manager.get_all_droplets()
+         for droplet in my_droplets:
+              if str(droplet).split(' ')[0] == str(results[0]):
+                   print "Lo enciendo"
+                   droplet.power_on()
+    ip = results[2]
+    response = os.system("ping -c 1 " + ip)
+    while response != 0:
+         sleep(0.5)
+         response = os.system("ping -c 1 " + ip)
+    sleep(5)
+
+    cursor = db.cursor()
+    update_query = ("UPDATE servers SET status='Running'  WHERE token='{}';".format(token))
+    cursor.execute(update_query)
+    db.commit()   
+    cursor.close()
+
+def destroy(token):
+    cursor = db.cursor()
+    query = ("SELECT machine_id , provider , ip FROM servers WHERE token='{}';".format(token))
+    cursor.execute(query)
+    results = cursor.fetchall()[0]
+    cursor = db.cursor()
+    print results
+    #cursor = db.cursor()
+    #update_query = ("UPDATE servers SET status='Powering on'  WHERE token='{}';".format(token))
+    #cursor.execute(update_query)
+    #db.commit()
+    if results[1] == 'DigitalOcean':
+         manager = digitalocean.Manager(token=APIToken)
+         my_droplets = manager.get_all_droplets()
+         for droplet in my_droplets:
+              if str(droplet).split(' ')[0] == str(results[0]):
+                   print "Lo borro"
+                   droplet.destroy()
 
 class theThread(threading.Thread):
     def __init__(self, action, zone=None, userId=None, token=None):
@@ -237,14 +298,17 @@ class theThread(threading.Thread):
               createDroplet(self.zone, self.userId, self.token)
          elif self.action == 'poweroff':
               poweroff(self.token)
-
+         elif self.action == 'poweron':
+              poweron(self.token)
+         elif self.action == 'destroy':
+              destroy(self.token)
 
 
 class GetHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
         message_parts = []
-        if parsed_path.path == '/createserver' or parsed_path.path == '/poweroff':
+        if parsed_path.path == '/createserver' or parsed_path.path == '/poweroff' or parsed_path.path == '/poweron' or parsed_path.path == '/destroy':
             arguments = dict()
             print(self.client_address)
             args = parsed_path.query.split('&')
@@ -262,6 +326,10 @@ class GetHandler(BaseHTTPRequestHandler):
 		        t = theThread('create', int(zone), userId, arguments['token'])  
                     elif parsed_path.path == '/poweroff':
                         t = theThread('poweroff', int(zone), userId, arguments['token'])
+                    elif parsed_path.path == '/poweron':
+                        t = theThread('poweron', int(zone), userId, arguments['token'])
+                    elif parsed_path.path == '/destroy':
+                        t = theThread('destroy', int(zone), userId, arguments['token'])
                     t.start()  
                     #createDroplet(int(zone), userId, arguments['token'])
         for name, value in sorted(self.headers.items()):
