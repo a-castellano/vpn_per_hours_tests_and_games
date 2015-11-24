@@ -34,7 +34,7 @@ zones = {
     2: {'DigitalOcean': ['sgp1']},
     3: {'DigitalOcean': ['lon1']},
     4: {'DigitalOcean': ['ams2', 'ams3']},
-    5: {'DigitalOcean': ['tor11']}
+    5: {'DigitalOcean': ['tor1']}
 }
 
 zoneNames = [
@@ -161,6 +161,20 @@ def createDroplet(zone, userId, token):
     region = regions[random.randint(0, len(regions) - 1)]
     username = getUsername(userId)
     url = zoneNames[zone] + '.' + username + '.vpn.windmaker.net'
+    cursor = db.cursor()
+    query = ("SELECT name FROM servers WHERE user_id={};".format(userId))
+    cursor.execute(query)
+    results = cursor.fetchall()
+    cursor = db.cursor()
+    usedURLS = []
+    for r in results:
+         usedURLS.append(r[0])
+    counter = 1
+    print usedURLS
+    while url in usedURLS:
+         url = zoneNames[zone] + str(counter) + '.' + username + '.vpn.windmaker.net'
+         counter += 1
+    
     print url
     print region
     cursor = db.cursor()
@@ -191,17 +205,38 @@ def createDroplet(zone, userId, token):
     db.commit()
     cursor.close()
 
+def poweroff(token):
+    cursor = db.cursor()
+    query = ("SELECT machine_id , provider FROM servers WHERE token='{}';".format(token))
+    cursor.execute(query)
+    results = cursor.fetchall()[0]
+    cursor = db.cursor()
+    print results
+    if results[1] == 'DigitalOcean':
+         manager = digitalocean.Manager(token=APIToken)
+         my_droplets = manager.get_all_droplets()
+         for droplet in my_droplets:
+              if str(droplet).split(' ')[0] == str(results[0]):
+                   print "Lo apago"
+                   droplet.shutdown()
+              #print droplet
+              #print str(droplet).split(' ') 
+    #droplet.shutdown()
 
 class theThread(threading.Thread):
-    def __init__(self, zone, userId, token):
+    def __init__(self, action, zone=None, userId=None, token=None):
          threading.Thread.__init__(self)
+         self.action = action
          self.zone = zone
          self.userId = userId
          self.zone = zone
          self.token = token
 
     def run(self):
-         createDroplet(self.zone, self.userId, self.token)
+         if self.action == 'create':
+              createDroplet(self.zone, self.userId, self.token)
+         elif self.action == 'poweroff':
+              poweroff(self.token)
 
 
 
@@ -209,7 +244,7 @@ class GetHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urlparse.urlparse(self.path)
         message_parts = []
-        if parsed_path.path == '/createserver':
+        if parsed_path.path == '/createserver' or parsed_path.path == '/poweroff':
             arguments = dict()
             print(self.client_address)
             args = parsed_path.query.split('&')
@@ -223,7 +258,10 @@ class GetHandler(BaseHTTPRequestHandler):
                 if userId != None:
                     print "Machine id - {}".format(userId)
                     print "Zone - {}".format(zone)
-		    t = theThread(int(zone), userId, arguments['token'])  
+		    if parsed_path.path == '/createserver':
+		        t = theThread('create', int(zone), userId, arguments['token'])  
+                    elif parsed_path.path == '/poweroff':
+                        t = theThread('poweroff', int(zone), userId, arguments['token'])
                     t.start()  
                     #createDroplet(int(zone), userId, arguments['token'])
         for name, value in sorted(self.headers.items()):
