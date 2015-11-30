@@ -1,13 +1,11 @@
 ---
 - hosts: target
   remote_user: root
-
+  sudo: yes
 
   tasks:
    - name: update the server
      apt: update_cache=yes
-   - name: upgrade the server
-     apt: upgrade=full
    - name: install required software
      apt: name={{item}} state=installed update_cache=yes
      with_items:
