@@ -133,9 +133,38 @@ def createDropletDigitalOcean(url, region, point=True):
 def setUpVPNServer(userId,token,url,dropletID,ip):
     db = MySQLdb.connect(host=db_host, user=db_user, passwd=password, db=database)
     cursor = db.cursor()
-    query = ("SELECT name, password FROM vpnusers WHERE user_id={};".format(userId))
+    query = ("SELECT id FROM servers WHERE token='{}';".format(token))
     cursor.execute(query)
-    users = cursor.fetchall()
+    serverId = cursor.fetchone()[0]
+    cursor.close()
+    cursor = db.cursor()
+    query = ("SELECT vpn_group_id FROM serversvpngroups WHERE vpn_server_id={};".format(serverId))
+    cursor.execute(query)
+    groups = cursor.fetchall()
+    cursor.close()
+    users = []
+    if groups:
+         for group in groups:
+              cursor = db.cursor()    
+              query = ("SELECT vpn_user_id FROM vpnusersgroups  WHERE vpn_group_id={};".format(group[0]))
+              cursor.execute(query)
+              vpnusers = cursor.fetchall()
+              cursor.close()
+              for vpnuser in vpnusers:
+                   cursor = db.cursor()
+                   query = ("SELECT name, password FROM vpnusers  WHERE id={};".format(vpnuser[0]))
+                   cursor.execute(query)
+                   usersToCheck = cursor.fetchall()
+                   cursor.close()
+                   for userToCheck in usersToCheck:
+                        if [userToCheck[0],userToCheck[1]] not in users:
+                             users.append([userToCheck[0],userToCheck[1]])
+    
+    else:
+         cursor = db.cursor()
+         query = ("SELECT name, password FROM vpnusers WHERE user_id={};".format(userId))
+         cursor.execute(query)
+         users = cursor.fetchall()
     cursor = db.cursor()
     update_query = ("UPDATE servers SET status='Installing VPN server.'  WHERE token='{}';".format(token))
     cursor.execute(update_query)
@@ -182,7 +211,7 @@ def createDroplet(zone, userId, token):
     db.close()
     usedURLS = []
     for r in results:
-         usedURLS.append(r[0])
+         usedURLS.append(r[0])	
     counter = 1
     print usedURLS
     while url in usedURLS:
@@ -214,6 +243,7 @@ def createDroplet(zone, userId, token):
     sleep(15)
     print "Set up config"
     setUpVPNServer(userId,token,url,dropletID,ip)
+    #setUpVPNServer(userId,token,url,1,1)
     db = MySQLdb.connect(host=db_host, user=db_user, passwd=password, db=database)
     cursor = db.cursor()
     update_query = ("UPDATE servers SET status='Running'  WHERE token='{}';".format(token))
@@ -357,10 +387,26 @@ def createrandomserver(zone, userId, token):
     cursor.close()
     db.close()
     poweroff(token)
+    print("LO APAGO")
+    sleep(10)
+    try:
+         poweroff(token)
+    except:
+         print("YA ESTA APAGADO")
+    sleep(10)
+    try:
+         poweroff(token)
+    except:
+         print("YA ESTA APAGADO")
+    sleep(10)
     response = os.system("ping -c 1 " + ip)
     while response == 0:
-        sleep(1)
-        poweroff(token)
+         sleep(1)
+         try:
+              poweroff(token)
+         except:
+              print("YA ESTA APAGADO")
+         response = os.system("ping -c 1 " + ip)
     
 
 class theThread(threading.Thread):
@@ -396,6 +442,11 @@ class theThread(threading.Thread):
               #print results
               #cursor.close()
               createrandomserver(self.zone, self.userId, self.token)
+              cursor = db.cursor()
+              update = ("UPDATE randomservers SET number=number+1 WHERE user_id={}".format(user_id))
+              cursor.execute(update)
+              db.commit()
+              cursor.close()
               db.close()
               #counter = 0
               #for token in results:
