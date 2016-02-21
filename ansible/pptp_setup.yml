@@ -1,7 +1,7 @@
 ---
 - hosts: target
   remote_user: root
-  sudo: yes
+ 
 
   tasks:
    - name: update the server
@@ -30,7 +30,8 @@
      shell: sysctl -p
 
    - name: iptabes
-     shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE && iptables-save
+     shell: iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE 
 
-   - name: save iptables
-     command: iptables-save
+   - name: iptabes
+     shell: echo "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE ; exit0" > /etc/rc.local
+
