@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
 	cout << "Hola" << endl;
         if ( test.isCorrect() )
 	{
-		cout << "Funciona" << endl;
+		cout << "Command: " << test.getCommand() << endl;
+                cout << "Token: " << test.getToken() << endl;
 	}
 	else
 	{

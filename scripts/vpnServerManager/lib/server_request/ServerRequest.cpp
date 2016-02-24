@@ -18,7 +18,7 @@
 #endif
 
 
-ServerRequest::ServerRequest(std::string request)
+ServerRequest::ServerRequest( const std::string & request )
 {
 	boost::split(processedRequest,request,boost::is_any_of("/"));
 	correctRequest = false;
@@ -35,7 +35,31 @@ ServerRequest::ServerRequest(std::string request)
 	}
 }
 
-bool ServerRequest::isCorrect()
+const bool ServerRequest::isCorrect( void )
 {
 	return correctRequest;	
+}
+
+const std::string ServerRequest::getCommand( void )
+{
+	if ( this->isCorrect() )
+	{
+		return processedRequest[0];
+	}
+	else
+	{
+		return "";
+	}
+}
+
+const std::string ServerRequest::getToken( void )
+{
+        if ( this->isCorrect() )
+        {
+                return processedRequest[1];
+        }
+        else
+        {
+                return "";
+        }
 }

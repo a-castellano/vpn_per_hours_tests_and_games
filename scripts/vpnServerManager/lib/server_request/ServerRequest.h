@@ -19,8 +19,10 @@
 class ServerRequest
 {
         public:
-                ServerRequest( std::string );
-                bool isCorrect(void);
+                explicit ServerRequest( const std::string & );
+                const bool isCorrect( void );
+                const std::string getCommand( void );
+		const std::string getToken( void );
 
 	private:
 		std::vector<std::string> processedRequest;
