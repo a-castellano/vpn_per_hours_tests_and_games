@@ -1,4 +1,4 @@
-// databaseHandler.h
+// DatabaseHandler.h
 // Álvaro Castellano Vela 24/02/2016
 
 #ifndef DATABASEHANDLER_H
@@ -33,22 +33,31 @@
 #include <cppconn/prepared_statement.h>
 #endif
 
-class databaseHandler
+class DatabaseHandler
 {
+
 	public:
-		databaseHandler( const std::string & , const unsigned int & , const std::string & , const std::string & , const std::string & );
+		DatabaseHandler( const std::string & , const unsigned int & , const std::string & , const std::string & , const std::string & );
 
-		bool conect( void );
-		const bool successConection( void );
+		const bool dataIsWellFormed( void );
+		bool connect( void );
+		const bool successConected( void );
 		bool disconnect( void );
-
-		bool checkToken( std::string );
+		bool checkIfTokenExists( std::string );
 
 	private:
-		std::string host;
-		unsigned int port;
+		std::string address;
 		std::string user;
 		std::string pass;
 		std::string database;
+		bool dataWellFormed;
 		bool connected;
+
+
+
+                sql::Driver *driver;
+                sql::Connection *con;
+                sql::Statement *stmt;
+                sql::ResultSet *res;
+
 };
