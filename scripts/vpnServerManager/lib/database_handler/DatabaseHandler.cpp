@@ -88,14 +88,42 @@ bool DatabaseHandler::connect( void )
 		con->setSchema(database);
 		stmt = con->createStatement();
 		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
-		delete res;
-                delete stmt;
-                delete con;
-		connected = true;
-	}
-	catch (sql::SQLException &e){
+		
+	} catch ( sql::SQLException &e ){
 		connected = false;
 		return false;
 	}
 	return true;
+}
+
+bool DatabaseHandler::disconnect( void )
+{
+	try {
+
+		delete res;
+                delete stmt;
+                delete con;
+		connected = false;
+
+	} catch ( sql::SQLException &e ){
+		return false;
+	}
+	return true;
+}
+
+bool DatabaseHandler::queryTest( void )
+{
+	this->connect();
+	res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
+	this->disconnect();
+}
+
+unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token )
+{
+	std::stringstream query;
+	query << "SELECT zone FROM servers WHERE token='" << token << "' LIMIT 1";
+	this->connect();
+	res = stmt->executeQuery( query.str() );
+	res->next();
+	return std::stoi( res->getString("zone") );
 }

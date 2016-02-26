@@ -40,10 +40,10 @@ class DatabaseHandler
 		DatabaseHandler( const std::string & , const unsigned int & , const std::string & , const std::string & , const std::string & );
 
 		const bool dataIsWellFormed( void );
-		bool connect( void );
 		const bool successConected( void );
-		bool disconnect( void );
-		bool checkIfTokenExists( std::string );
+		bool queryTest( void );
+		unsigned int getServerZoneFromToken( const std::string &  );
+		
 
 	private:
 		std::string address;
@@ -53,11 +53,12 @@ class DatabaseHandler
 		bool dataWellFormed;
 		bool connected;
 
-
-
                 sql::Driver *driver;
                 sql::Connection *con;
                 sql::Statement *stmt;
                 sql::ResultSet *res;
 
+
+		bool connect( void );
+		bool disconnect( void );
 };
