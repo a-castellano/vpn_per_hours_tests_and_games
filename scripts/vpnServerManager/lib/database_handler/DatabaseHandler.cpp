@@ -9,6 +9,10 @@
 #include <string>
 #endif
 
+#ifndef VECTOR
+#include <vector>
+#endif
+
 #ifndef MYSQL_CONNECTION_H
 #include "mysql_connection.h"
 #endif
@@ -114,7 +118,10 @@ bool DatabaseHandler::disconnect( void )
 bool DatabaseHandler::queryTest( void )
 {
 	this->connect();
-	res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
+	if ( connected ) 
+	{
+		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
+	}
 	this->disconnect();
 }
 
@@ -123,7 +130,30 @@ unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token
 	std::stringstream query;
 	query << "SELECT zone FROM servers WHERE token='" << token << "' LIMIT 1";
 	this->connect();
-	res = stmt->executeQuery( query.str() );
-	res->next();
-	return std::stoi( res->getString("zone") );
+	if ( connected )
+	{
+		res = stmt->executeQuery( query.str() );
+		res->next();
+		this->disconnect();
+		return std::stoi( res->getString("zone") );
+	}
+	this->disconnect();
+	return 0;
+}
+
+std::vector<std::string> DatabaseHandler::getProvidersFromZone( const unsigned int & zone_id )
+{
+	std::vector<std::array<std::string, 2> >
+	std::vector<std::string> regions;
+	this->connect();
+
+	if ( connected )
+	{
+		/*
+		Hacemos la consulta de proveedores y regiones por zonas, elegimos un numero entre 1 y res->rowsCount() y cogemos esa fila, la transofrmamos en un vecor de cadenas y lo tranformamos
+		*/
+	}
+
+	this->disconnect();
+	return regions;
 }

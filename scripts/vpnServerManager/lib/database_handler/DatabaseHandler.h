@@ -9,6 +9,10 @@
 #include <string>
 #endif
 
+#ifndef VECTOR
+#include <vector>
+#endif
+
 #ifndef MYSQL_CONNECTION_H
 #include "mysql_connection.h"
 #endif
@@ -43,7 +47,7 @@ class DatabaseHandler
 		const bool successConected( void );
 		bool queryTest( void );
 		unsigned int getServerZoneFromToken( const std::string &  );
-		
+		std::vector<std::string> getProvidersFromZone( const unsigned int & );
 
 	private:
 		std::string address;
