@@ -9,4 +9,4 @@
 
 ### TESTS ###
 
-## mysql tests ##
+## MySQL tests ##
