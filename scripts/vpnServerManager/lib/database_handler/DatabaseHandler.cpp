@@ -13,6 +13,14 @@
 #include <vector>
 #endif
 
+#ifndef STDLIB
+#include <stdlib.h>
+#endif
+
+#ifndef IOSTREAM
+#include <iostream>
+#endif
+
 #ifndef MYSQL_CONNECTION_H
 #include "mysql_connection.h"
 #endif
@@ -52,6 +60,7 @@ DatabaseHandler::DatabaseHandler( const std::string & givenHost , const unsigned
 	std::stringstream ss;
 
 	dataWellFormed = true;
+	error = false;
 	
 	if( !( boost::regex_match (givenHost , IPPattern) || boost::regex_match (givenHost , URLPattern) ) || givenUser.length() > 17)
 	// If givenHost isn't an IP address maybe it's a domain name
@@ -87,16 +96,16 @@ const bool DatabaseHandler::successConected( void )
 bool DatabaseHandler::connect( void )
 {
 	try {
-		driver = get_driver_instance();
-		con = driver->connect(address, user, pass);
-		con->setSchema(database);
-		stmt = con->createStatement();
-		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
-		
+		this->driver = get_driver_instance();
+		this->con = driver->connect(address, user, pass);
+		this->con->setSchema(database);
+		this->stmt = con->createStatement();
 	} catch ( sql::SQLException &e ){
 		connected = false;
+		std::cerr << "Database conenction failed" << std::endl;
 		return false;
 	}
+	connected = true;
 	return true;
 }
 
@@ -117,7 +126,7 @@ bool DatabaseHandler::disconnect( void )
 
 bool DatabaseHandler::queryTest( void )
 {
-	this->connect();
+	connect();
 	if ( connected ) 
 	{
 		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
@@ -125,35 +134,52 @@ bool DatabaseHandler::queryTest( void )
 	this->disconnect();
 }
 
+const bool DatabaseHandler::hasError( void )
+{
+	return error;
+}
+
 unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token )
 {
 	std::stringstream query;
 	query << "SELECT zone FROM servers WHERE token='" << token << "' LIMIT 1";
-	this->connect();
+	connect();
 	if ( connected )
 	{
-		res = stmt->executeQuery( query.str() );
-		res->next();
-		this->disconnect();
-		return std::stoi( res->getString("zone") );
+		this->res = stmt->executeQuery( query.str() );
+		this->res->next();
+		//this->disconnect();
+		return std::stoi( this->res->getString("zone") );
 	}
-	this->disconnect();
+	else
+	{
+		std::cerr << "Failed to conenct" << std::endl;
+		error = true;
+	}
+	disconnect();
 	return 0;
 }
 
 std::vector<std::string> DatabaseHandler::getProvidersFromZone( const unsigned int & zone_id )
 {
-	std::vector<std::array<std::string, 2> >
-	std::vector<std::string> regions;
-	this->connect();
+	std::vector<std::string> providers;
+	std::stringstream query;
 
-	if ( connected )
+	if ( database == "vpn_zones" )
 	{
-		/*
-		Hacemos la consulta de proveedores y regiones por zonas, elegimos un numero entre 1 y res->rowsCount() y cogemos esa fila, la transofrmamos en un vecor de cadenas y lo tranformamos
-		*/
-	}
+		connect();
 
-	this->disconnect();
-	return regions;
+		if ( connected )
+		{
+			query << "SELECT provider FROM zones WHERE zone_id=" << zone_id << " ;";
+			res = stmt->executeQuery( query.str() );
+			while ( res->next() )
+			{
+				providers.push_back( res->getString("provider") );
+			}
+		disconnect();  
+		}
+	
+	}//providers will be emty
+	return providers;
 }

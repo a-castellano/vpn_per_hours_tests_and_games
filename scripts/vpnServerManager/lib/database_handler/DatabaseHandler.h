@@ -13,6 +13,14 @@
 #include <vector>
 #endif
 
+#ifndef STDLIB
+#include <stdlib.h>
+#endif
+
+#ifndef IOSTREAM
+#include <iostream>
+#endif
+
 #ifndef MYSQL_CONNECTION_H
 #include "mysql_connection.h"
 #endif
@@ -45,6 +53,7 @@ class DatabaseHandler
 
 		const bool dataIsWellFormed( void );
 		const bool successConected( void );
+		const bool hasError( void );
 		bool queryTest( void );
 		unsigned int getServerZoneFromToken( const std::string &  );
 		std::vector<std::string> getProvidersFromZone( const unsigned int & );
@@ -56,7 +65,7 @@ class DatabaseHandler
 		std::string database;
 		bool dataWellFormed;
 		bool connected;
-
+		bool error;
                 sql::Driver *driver;
                 sql::Connection *con;
                 sql::Statement *stmt;

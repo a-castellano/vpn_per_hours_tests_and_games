@@ -1,4 +1,7 @@
 #include <iostream>
+#include <vector>
+#include <string>
+
 #include <DatabaseHandler.h>
 
 using namespace std;
@@ -24,13 +27,41 @@ int main(int argc, char *argv[])
 		
 	if ( db.dataIsWellFormed() )
 	{
-		cout << "BIEN" << endl;
+		cout << "BIEN CONSTRUIDO" << endl;
 	}
+	if ( db.successConected() )
+	{
+		cout << "CONECTADO" << endl;
+	}
+	else
+	{
+		cout << "NO CONECTADO!" << endl;
+	}
+
+
 	zone = db.getServerZoneFromToken(token);
+
+	if ( db.hasError() )
+	{
+		cout << "TENEMOS UN ERROR" << endl;
+	}
 	
         
                 cout << "ZONA -> "<< zone << endl;
         
+
+	vector<string> providers;
+
+	zone = 1;
+
+	DatabaseHandler db2(address,3306,user,password, string("vpn_zones") );
+	providers = db2.getProvidersFromZone(zone);
+	cout << "Poviders: "<< providers.size() << endl;
+	for ( string i: providers )
+	{
+		cout << i << endl;
+	}	
+
 	return EXIT_SUCCESS;
 	
 }
