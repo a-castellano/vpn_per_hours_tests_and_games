@@ -11,6 +11,7 @@ INCLUDE_DIRECTORIES(src)
 
 INCLUDE_DIRECTORIES(lib/server_request)
 INCLUDE_DIRECTORIES(lib/database_handler)
+INCLUDE_DIRECTORIES(lib/server)
 
 ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp )
 TARGET_LINK_LIBRARIES( main ${CONAN_LIBS})
@@ -20,6 +21,9 @@ TARGET_LINK_LIBRARIES( server_request_test ${CONAN_LIBS} )
 
 ADD_EXECUTABLE( mysql_test src/mysql_test.cpp lib/database_handler/DatabaseHandler.cpp )
 TARGET_LINK_LIBRARIES( mysql_test ${CONAN_LIBS} mysqlcppconn )
+
+ADD_EXECUTABLE( server_test src/server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp  lib/server/VultrServer.cpp)
+TARGET_LINK_LIBRARIES( server_test )
 
 add_test(NAME server_request COMMAND ./bin/server_request_test )
 
