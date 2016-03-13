@@ -16,10 +16,12 @@ class DigitalOceanServer : public Server
 		bool destroy();
 		bool powerOn();
 		bool powerOff();
-		
+
 		const std::string serverType();
 
 		~DigitalOceanServer();
+
+		static Server * __stdcall Create() { return new DigitalOceanServer(); }
 };
 
 #endif

@@ -7,21 +7,20 @@
 #include "Server.h"
 #include <string>
 
-class VultrServer : public Server
-{
-        public:
-                VultrServer( const std::string & );
+class VultrServer : public Server {
+public:
+  VultrServer(const std::string &);
 
-                bool create();
-                bool destroy();
-                bool powerOn();
-                bool powerOff();
-                
-		const std::string serverType();
+  bool create();
+  bool destroy();
+  bool powerOn();
+  bool powerOff();
 
-                ~VultrServer();
+  const std::string serverType();
 
-        
+  ~VultrServer();
+
+  static Server *__stdcall Create() { return new VultrServer(); }
 };
 
 #endif
