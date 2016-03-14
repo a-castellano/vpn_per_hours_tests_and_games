@@ -20,7 +20,8 @@ public:
 
   ~VultrServer();
 
-  static Server *__stdcall Create() { return new VultrServer(); }
+  static Server * Create(const std::string &token) { return new
+	  VultrServer(token); }
 };
 
 #endif

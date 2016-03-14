@@ -5,27 +5,14 @@
 #define SERVERFACTORY_H
 
 #include <string>
+#include <map>
 #include "Server.h"
+#include "DigitalOceanServer.h"
+#include "VultrServer.h"
 
-class ServerFactory {
-public:
-  ~ServerFactory() { m_FactoryMap.clear(); }
 
-  static ServerFactory *Get() {
-    static ServerFactory instance;
-    return &instance;
-  }
 
-  void Register(const string &serverType, ServerFactory pfnCreate);
-  Server *CreateServer(const string &animalName);
+Server *CreateServer(const std::string &,const std::string &);
 
-private:
-  ServerFactory();
-  ServerFactory(const ServerFactory &) {}
-  ServerFactory &operator=(const ServerFactory &) { return *this; }
-
-  typedef map FactoryMap;
-  FactoryMap m_FactoryMap;
-}
 
 #endif

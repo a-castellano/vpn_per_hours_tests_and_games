@@ -28,7 +28,8 @@ TARGET_LINK_LIBRARIES( mysql_test ${CONAN_LIBS} mysqlcppconn )
 #ADD_EXECUTABLE( log_test src/log_test.cpp lib/log/Log.cpp )
 #TARGET_LINK_LIBRARIES( log_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
-ADD_EXECUTABLE( server_test src/server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp  lib/server/VultrServer.cpp)
+ADD_EXECUTABLE( server_test src/server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
+  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp )
 TARGET_LINK_LIBRARIES( server_test )
 
 add_test(NAME server_request COMMAND ./bin/server_request_test )

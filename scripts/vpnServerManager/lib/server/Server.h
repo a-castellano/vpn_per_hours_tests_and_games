@@ -18,7 +18,6 @@ class Server
 
 		virtual const std::string serverType();
 		const std::string getToken();
-
 		~Server();
 
 	private:

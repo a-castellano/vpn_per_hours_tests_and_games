@@ -3,8 +3,9 @@
 
 #include "Server.h"
 
-Server::Server( const std::string & token )
-:token(token) {}
+Server::Server(const std::string &token)
+:token(token)
+{}
 
 const std::string Server::getToken( void )
 {

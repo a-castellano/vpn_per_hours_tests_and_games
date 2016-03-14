@@ -19,9 +19,11 @@ class DigitalOceanServer : public Server
 
 		const std::string serverType();
 
+		static Server * Create(const std::string &token) { return new DigitalOceanServer(token); }
+
 		~DigitalOceanServer();
 
-		static Server * __stdcall Create() { return new DigitalOceanServer(); }
+
 };
 
 #endif

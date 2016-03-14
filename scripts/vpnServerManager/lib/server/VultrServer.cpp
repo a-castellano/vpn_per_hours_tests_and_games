@@ -3,8 +3,9 @@
 
 #include "VultrServer.h"
 
-VultrServer::VultrServer( const std::string & token )
-:Server(token) {}
+VultrServer::VultrServer(const std::string &token)
+:Server(token)
+{}
 
 const std::string VultrServer::serverType( void )
 {

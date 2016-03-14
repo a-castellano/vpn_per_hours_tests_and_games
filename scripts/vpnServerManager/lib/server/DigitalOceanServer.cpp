@@ -3,35 +3,21 @@
 
 #include "DigitalOceanServer.h"
 
-DigitalOceanServer::DigitalOceanServer( const std::string & token )
-:Server(token) {}
+DigitalOceanServer::DigitalOceanServer(const std::string &token)
+    : Server(token) {}
 
-
-const std::string DigitalOceanServer::serverType()
-{
-	return std::string ("DigitalOcean");
-	
+const std::string DigitalOceanServer::serverType() {
+  return std::string("DigitalOcean");
 }
 
-DigitalOceanServer::~DigitalOceanServer() {}
+DigitalOceanServer::~DigitalOceanServer(){}
 
-
-bool DigitalOceanServer::create()
-{
-	return true;
+    bool DigitalOceanServer::create() {
+  return true;
 }
 
-bool DigitalOceanServer::destroy()
-{
-        return true;
-}
+bool DigitalOceanServer::destroy() { return true; }
 
-bool DigitalOceanServer::powerOn()
-{
-        return true;
-}
+bool DigitalOceanServer::powerOn() { return true; }
 
-bool DigitalOceanServer::powerOff()
-{
-        return true;
-}
+bool DigitalOceanServer::powerOff() { return true; }
