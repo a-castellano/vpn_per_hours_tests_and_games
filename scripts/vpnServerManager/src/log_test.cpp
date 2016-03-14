@@ -4,17 +4,15 @@
 #include <Log.h>
 
 using namespace std;
-using namespace dhlogging;
+
 
 int main(int argc, char *argv[])
 {
-	if ( argc != 1 )
-		return 1;
+	logging::add_common_attributes();  
 
-	string text ( argv[1] );
-	Log logger("/var/log/prueba_c.log");
-
-	logger.info_log(text);
+	    using namespace logging::trivial;
+	dhlogging::Logger::getInstance()->logInfo("himom");
+	
 
 	return 0;
 }

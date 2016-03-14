@@ -4,8 +4,7 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <string>
-
+#include <map>
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
@@ -24,16 +23,29 @@ namespace keywords = boost::log::keywords;
 
 using namespace logging::trivial;
 
-namespace dhlogging 
-{
-class Log
-{
-	public:
-		static Logger* getInstance(std::string logFile = "default.log");
-		void info_log( const std::string & );
-	private:
-		void init();
-		src::severity_logger< severity_level > lg;
+namespace dhlogging {
+class Logger {
+
+public:
+  static Logger *getInstance(std::string logFile = "default.log");
+
+  void logInfo(std::string message);
+  void logDebug(std::string message);
+  void logWarn(std::string message);
+  void logError(std::string message);
+  void logFatal(std::string message);
+
+private:
+  Logger(std::string fileName);
+  Logger(Logger const &);
+  Logger &operator=(Logger const &);
+  virtual ~Logger();
+
+  void initialize(std::string fileName);
+
+  src::severity_logger<severity_level> log_;
+
+  static Logger *logger_;
 };
 }
 #endif
