@@ -54,14 +54,15 @@ DatabaseHandler::DatabaseHandler( const std::string & givenHost , const unsigned
 {
 	// Check that the host and the port are valid
 	boost::regex IPPattern("(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])");
-	
+
 	boost::regex URLPattern("([\\da-z\\.-]+)\\.([a-z\\.]{2,6})|(localhost)");
 
 	std::stringstream ss;
 
 	dataWellFormed = true;
 	error = false;
-	
+	errormsg = std::string("");
+
 	if( !( boost::regex_match (givenHost , IPPattern) || boost::regex_match (givenHost , URLPattern) ) || givenUser.length() > 17)
 	// If givenHost isn't an IP address maybe it's a domain name
 	{
@@ -73,7 +74,7 @@ DatabaseHandler::DatabaseHandler( const std::string & givenHost , const unsigned
 		address = ss.str();
 		user = givenUser;
 	}
-	
+
 }
 
 const bool DatabaseHandler::dataIsWellFormed( void )
@@ -102,9 +103,11 @@ bool DatabaseHandler::connect( void )
 		this->stmt = con->createStatement();
 	} catch ( sql::SQLException &e ){
 		connected = false;
-		std::cerr << "Database conenction failed" << std::endl;
+		error = true;
+		errormsg = std::string("Database conenction failed");
 		return false;
 	}
+	error = false;
 	connected = true;
 	return true;
 }
@@ -127,7 +130,7 @@ bool DatabaseHandler::disconnect( void )
 bool DatabaseHandler::queryTest( void )
 {
 	connect();
-	if ( connected ) 
+	if ( connected )
 	{
 		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
 	}
@@ -139,6 +142,11 @@ const bool DatabaseHandler::hasError( void )
 	return error;
 }
 
+std::string DatabaseHandler::getErrorMsg( void )
+{
+	return errormsg;
+}
+
 unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token )
 {
 	std::stringstream query;
@@ -147,14 +155,24 @@ unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token
 	if ( connected )
 	{
 		this->res = stmt->executeQuery( query.str() );
-		this->res->next();
-		//this->disconnect();
-		return std::stoi( this->res->getString("zone") );
+		if (this->res->next())
+		{
+			//this->res->next();
+			return std::stoi( this->res->getString("zone") );
+		}
+		else
+		{
+			disconnect();
+			error = true;
+			errormsg = std::string("Query response is empty.");
+			return 0;
+		}
 	}
 	else
 	{
 		std::cerr << "Failed to conenct" << std::endl;
 		error = true;
+		errormsg = std::string("Failed to conenct."); 
 	}
 	disconnect();
 	return 0;

@@ -16,6 +16,7 @@ VultrServer::~VultrServer() {}
 
 bool VultrServer::create()
 {
+				std::cout << VULTR_API_KEY;
         return true;
 }
 

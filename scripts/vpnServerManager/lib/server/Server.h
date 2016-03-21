@@ -5,6 +5,8 @@
 #define SERVER_H
 
 #include <string>
+#include <iostream>
+#include "api_keys.h"
 
 class Server
 {

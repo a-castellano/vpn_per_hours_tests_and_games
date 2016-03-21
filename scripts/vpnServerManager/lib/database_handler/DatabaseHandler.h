@@ -57,15 +57,19 @@ class DatabaseHandler
 		bool queryTest( void );
 		unsigned int getServerZoneFromToken( const std::string &  );
 		std::vector<std::string> getProvidersFromZone( const unsigned int & );
-
+		std::string getErrorMsg( void );
 	private:
 		std::string address;
 		std::string user;
 		std::string pass;
 		std::string database;
+
 		bool dataWellFormed;
 		bool connected;
 		bool error;
+
+		std::string errormsg;
+
                 sql::Driver *driver;
                 sql::Connection *con;
                 sql::Statement *stmt;
