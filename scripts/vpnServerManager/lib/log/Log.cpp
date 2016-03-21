@@ -39,8 +39,8 @@ Logger *Logger::getInstance(std::string logFile) {
 }
 
 void Logger::initialize(std::string fileName) {
-  BOOST_LOG(log_) << "Hello, World!";
-  BOOST_LOG_SEV(log_, info) << "Hello, World2!";
+  //BOOST_LOG(log_) << "Hello, World!";
+  //BOOST_LOG_SEV(log_, info) << "Hello, World2!";
 }
 
 void Logger::logInfo(std::string message) {
