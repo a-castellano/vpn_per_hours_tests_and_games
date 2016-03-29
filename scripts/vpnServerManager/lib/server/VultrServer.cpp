@@ -1,7 +1,13 @@
 // VultrServer.cpp
 // Álvaro Castellano Vela 12/03/2016
 
+#define CURL_STATICLIB
+
 #include "VultrServer.h"
+
+#include <boost/asio.hpp>
+
+using namespace boost::asio;
 
 VultrServer::VultrServer(const std::string &token)
 :Server(token)
@@ -16,8 +22,11 @@ VultrServer::~VultrServer() {}
 
 bool VultrServer::create()
 {
-				std::cout << VULTR_API_KEY;
-        return true;
+	boost::system::error_code ec;
+    io_service svc;
+		    ip::tcp::socket sock(svc);
+				    sock.connect({ {}, 8087 }); // http://localhost:8087 for testing
+	return true;
 }
 
 bool VultrServer::destroy()
