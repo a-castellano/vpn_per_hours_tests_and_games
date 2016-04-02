@@ -31,7 +31,6 @@ ServerRequest::ServerRequest( const std::string & request )
 				correctRequest = true;
 			}
 		}
-
 	}
 }
 

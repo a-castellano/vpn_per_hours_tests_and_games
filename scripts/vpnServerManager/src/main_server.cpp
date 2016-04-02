@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 				free(db_zones);
 				free(db);
 				server = CreateServer(selectedProvider,token);
+				server->setZone(zone);
 				log = string("Server type: ") + server->serverType();
 				dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
 				if(server->create())

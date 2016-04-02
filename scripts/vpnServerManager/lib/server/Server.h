@@ -6,7 +6,7 @@
 
 #include <string>
 #include <iostream>
-#include "api_keys.h"
+#include "keys_functions.h"
 
 class Server
 {
@@ -20,6 +20,11 @@ class Server
 
 		virtual const std::string serverType();
 		const std::string getToken();
+		void setZone(const unsigned int &);
+
+		static size_t data_write(void*, size_t , size_t ,void*);//this
+		//this function should be private
+
 		~Server();
 
 	private:
