@@ -4,11 +4,10 @@
 
 #include <DatabaseHandler.h>
 #include <ServerRequest.h>
-#include <Log.h>
+#include <Logger.h>
 #include <ServerFactory.h>
 
 using namespace std;
-using namespace logging::trivial;
 
 string address("paula.es.una.ninja");
 string user("vpn");
@@ -31,45 +30,52 @@ int main(int argc, char *argv[]) {
 
 	Server *server;
 
+	string logFile("/var/log/vpnporhours.log");
   string log("");
-  logging::add_common_attributes();
 
   ServerRequest request(argv[1]);
 
   log = string("Request: ") + string(argv[1]);
-  dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+	writeLog(logFile,log);
+  //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
 
   if (request.isCorrect()) {
     command = request.getCommand();
     token = request.getToken();
     log = string("Commad: ") + command;
-    dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+		writeLog(logFile,log); 
+    //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
     log = string("Token: ") + token;
-    dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+		writeLog(logFile,log);
+    //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
 
     db = new DatabaseHandler(address, 3306, user, password, database);
     if (!db->dataIsWellFormed()) {
-      dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-          ->logInfo("Database data is incorrect.");
+			log = string("Database data is incorrect.");
+			writeLog(logFile,log);
+      //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
+          //->logInfo("Database data is incorrect.");
       return -1;
     } else {
       zone = db->getServerZoneFromToken(token);
       if (db->hasError()) {
-        dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-            ->logInfo(db->getErrorMsg());
+				writeLog(logFile,db->getErrorMsg());
+        //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
+        //    ->logInfo(db->getErrorMsg());
         return -1;
       } else {
         log = string("Zone: ") + to_string(zone);
-        dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-            ->logInfo(log);
+				writeLog(logFile,log);
+        //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
+          //  ->logInfo(log);
 				// Get providers
 				db_zones = new DatabaseHandler(address, 3306, user, password, string("vpn_zones"));
 				providers = db_zones->getProvidersFromZone(zone);
 				log = string("Providers: ");
-				dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+				writeLog(logFile,log); 
 				for (string provider : providers)
 				{
-					dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(provider); 
+					writeLog(logFile,provider);
 				}
 				//Get one provider randomply
 				if (providers.size()==1){
@@ -82,23 +88,24 @@ int main(int argc, char *argv[]) {
 					selectedProvider = providers[providerRandomId];
 				}
 				log = string("Selected provider: ") + selectedProvider;
-				dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+				writeLog(logFile,log);
 				free(db_zones);
 				free(db);
 				server = CreateServer(selectedProvider,token);
 				server->setZone(zone);
 				log = string("Server type: ") + server->serverType();
-				dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+				writeLog(logFile,log);
 				if(server->create())
 				{
-				dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(string("Server Created")); 
+				log = string("Server created");
+				writeLog(logFile,log);
 				}
 				free(server);
       }
     }
   } else {
-    dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-        ->logInfo("Request malformed.");
+		log = string("Request malformed.");
+		writeLog(logFile,log);
     return -1;
   }
   return 0;
