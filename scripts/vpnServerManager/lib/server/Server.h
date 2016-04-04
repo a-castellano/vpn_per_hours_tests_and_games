@@ -20,7 +20,14 @@ class Server
 
 		virtual const std::string serverType();
 		const std::string getToken();
+		const unsigned int getZone();
 		void setZone(const unsigned int &);
+		
+		void setMachineID(const std::string &);
+		std::string getMachineID();
+
+		void setServerIP(const std::string &);
+		std::string getServerIP();
 
 		static size_t data_write(void*, size_t , size_t ,void*);//this
 		//this function should be private
@@ -32,7 +39,8 @@ class Server
 		std::string state;
 		unsigned int zone;
 		std::string realZone;
-
+		std::string machineID;
+		std::string serverIP;
 };
 
 #endif

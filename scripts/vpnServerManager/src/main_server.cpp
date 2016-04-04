@@ -22,90 +22,83 @@ int main(int argc, char *argv[]) {
   string token;
 
   DatabaseHandler *db;
-	DatabaseHandler *db_zones;
+  DatabaseHandler *db_zones;
   unsigned int zone;
   vector<string> providers;
-	string selectedProvider;
-	unsigned int providerRandomId;
+  string selectedProvider;
+  unsigned int providerRandomId;
 
-	Server *server;
+  Server *server;
 
-	string logFile("/var/log/vpnporhours.log");
+  string logFile("/var/log/vpnporhours.log");
   string log("");
 
   ServerRequest request(argv[1]);
 
   log = string("Request: ") + string(argv[1]);
-	writeLog(logFile,log);
-  //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+  writeLog(logFile, log);
 
   if (request.isCorrect()) {
     command = request.getCommand();
     token = request.getToken();
     log = string("Commad: ") + command;
-		writeLog(logFile,log); 
-    //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+    writeLog(logFile, log);
     log = string("Token: ") + token;
-		writeLog(logFile,log);
-    //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")->logInfo(log);
+    writeLog(logFile, log);
 
     db = new DatabaseHandler(address, 3306, user, password, database);
     if (!db->dataIsWellFormed()) {
-			log = string("Database data is incorrect.");
-			writeLog(logFile,log);
-      //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-          //->logInfo("Database data is incorrect.");
+      log = string("Database data is incorrect.");
+      writeLog(logFile, log);
       return -1;
     } else {
       zone = db->getServerZoneFromToken(token);
       if (db->hasError()) {
-				writeLog(logFile,db->getErrorMsg());
-        //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-        //    ->logInfo(db->getErrorMsg());
+        writeLog(logFile, db->getErrorMsg());
         return -1;
       } else {
         log = string("Zone: ") + to_string(zone);
-				writeLog(logFile,log);
-        //dhlogging::Logger::getInstance("/var/log/vpnporhours.log")
-          //  ->logInfo(log);
-				// Get providers
-				db_zones = new DatabaseHandler(address, 3306, user, password, string("vpn_zones"));
-				providers = db_zones->getProvidersFromZone(zone);
-				log = string("Providers: ");
-				writeLog(logFile,log); 
-				for (string provider : providers)
-				{
-					writeLog(logFile,provider);
-				}
-				//Get one provider randomply
-				if (providers.size()==1){
-					selectedProvider = providers[0];
-				}
-				else
-				{//More than one provider
-					srand(time(NULL));
-					providerRandomId = rand()%(providers.size());
-					selectedProvider = providers[providerRandomId];
-				}
-				log = string("Selected provider: ") + selectedProvider;
-				writeLog(logFile,log);
-				free(db_zones);
-				free(db);
-				server = CreateServer(selectedProvider,token);
-				server->setZone(zone);
-				log = string("Server type: ") + server->serverType();
-				writeLog(logFile,log);
-				if(server->create())
-				{
-				log = string("Server created");
-				writeLog(logFile,log);
-				}
-				free(server);
+        writeLog(logFile, log);
+        // Get providers
+        db_zones = new DatabaseHandler(address, 3306, user, password,
+                                       string("vpn_zones"));
+        providers = db_zones->getProvidersFromZone(zone);
+        log = string("Providers: ");
+        writeLog(logFile, log);
+        for (string provider : providers) {
+          writeLog(logFile, provider);
+        }
+        // Get one provider randomply
+        if (providers.size() == 1) {
+          selectedProvider = providers[0];
+        } else { // More than one provider
+          srand(time(NULL));
+          providerRandomId = rand() % (providers.size());
+          selectedProvider = providers[providerRandomId];
+        }
+        log = string("Selected provider: ") + selectedProvider;
+        writeLog(logFile, log);
+        free(db_zones);
+        free(db);
+        server = CreateServer(selectedProvider, token);
+        server->setZone(zone);
+        log = string("Server type: ") + server->serverType();
+        writeLog(logFile, log);
+        // server->setMachineID(string("3622900"));
+        if (server->create()) {
+          log = string("Server created");
+          writeLog(logFile, log);
+          log = string("True Server ID: ") + server->getMachineID();
+          writeLog(logFile, log);
+          log = string("IP: ") + server->getServerIP();
+          writeLog(logFile, log);
+        }
+        free(server);
       }
     }
   } else {
-		log = string("Request malformed.");
-		writeLog(logFile,log);
+    log = string("Request malformed.");
+    writeLog(logFile, log);
     return -1;
   }
   return 0;

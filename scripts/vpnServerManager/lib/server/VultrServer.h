@@ -22,6 +22,11 @@ public:
 
   static Server * Create(const std::string &token) { return new
 	  VultrServer(token); }
+
+private:
+  const std::string zoneName();
+  bool curlGET(const std::string &, std::stringstream &);
+  bool curlPOST(const std::string &, const std::string &, std::stringstream &);
 };
 
 #endif
