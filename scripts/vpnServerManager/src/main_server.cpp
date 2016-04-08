@@ -101,5 +101,5 @@ int main(int argc, char *argv[]) {
     writeLog(logFile, log);
     return -1;
   }
-  return 0;
+	return 0;
 }
