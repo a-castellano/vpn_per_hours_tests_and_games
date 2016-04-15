@@ -195,9 +195,61 @@ std::vector<std::string> DatabaseHandler::getProvidersFromZone( const unsigned i
 			{
 				providers.push_back( res->getString("provider") );
 			}
-		disconnect();  
+		disconnect();
 		}
-	
+
 	}//providers will be emty
 	return providers;
 }
+
+std::string DatabaseHandler::setServerName(const std::string &server_token ,const unsigned int & zone_id)
+{
+	std::stringstream user_query;
+	std::stringstream servers_query;
+
+	std::string  username;
+	std::set<std::string> server_names;
+
+	std::stringstream candidateURL;
+	std::string  currentURL;
+	std::string finalURL;
+	bool finded;
+
+	user_query << "SELECT username FROM users JOIN servers WHERE servers.token='" << server_token << "' LIMIT 1";
+	connect();
+	if ( connected )
+	{
+		this->res = stmt->executeQuery( user_query.str() );
+		if (this->res->next())
+		{
+			username = this->res->getString("username");
+		}
+	}
+	disconnect();
+
+	servers_query << "SELECT name FROM servers WHERE zone=" << zone_id << " AND token <> '" << server_token <<"'";
+	connect();
+	if ( connected )
+	{
+		this->res = stmt->executeQuery( servers_query.str() );
+		while ( res->next() )
+		{
+			server_names.insert( res->getString("name") );
+		}
+	}
+	disconnect();
+
+	for (int i = 1 ,finded = false; finded==false ; i++){
+		candidateURL << zone_initials[zone_id] << i << std::string(".") << username << ".vpn.windmaker.net"; 
+		if( server_names.find(candidateURL.str()) == server_names.end() )
+		{
+			finded = true;
+			finalURL = candidateURL.str();
+
+		}
+		candidateURL.str("");
+	}
+	 std::cout<<	"Candidato: " << finalURL << std::endl;
+	return finalURL;
+	} //DatabaseHandler::setServerName
+

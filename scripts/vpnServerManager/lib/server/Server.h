@@ -29,6 +29,9 @@ class Server
 		void setServerIP(const std::string &);
 		std::string getServerIP();
 
+		void setServerName(const std::string &);
+		std::string getServerName(); 
+
 		static size_t data_write(void*, size_t , size_t ,void*);//this
 		//this function should be private
 
@@ -41,6 +44,7 @@ class Server
 		std::string realZone;
 		std::string machineID;
 		std::string serverIP;
+		std::string serverName;
 };
 
 #endif

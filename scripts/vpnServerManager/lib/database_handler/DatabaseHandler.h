@@ -57,6 +57,7 @@ class DatabaseHandler
 		bool queryTest( void );
 		unsigned int getServerZoneFromToken( const std::string &  );
 		std::vector<std::string> getProvidersFromZone( const unsigned int & );
+		std::string setServerName(const std::string & ,const unsigned int &);
 		std::string getErrorMsg( void );
 	private:
 		std::string address;
@@ -78,4 +79,6 @@ class DatabaseHandler
 
 		bool connect( void );
 		bool disconnect( void );
+
+		std::string zone_initials[10] = {"","usa","ger","sgp","uk","net","can","fra","jap","au"};
 };

@@ -26,7 +26,7 @@ dest = "23.45.67.32"
 
 actions = ["ADD", "DELETE"]
 
-for i in range(50):
+for i in range(20):
     domain = "example-" + str(i) + ".windmaker.net"
     print "Sending: {} to {}:".format(domain, dest)
     sendRequest(ip, port, domain, dest, actions[1])

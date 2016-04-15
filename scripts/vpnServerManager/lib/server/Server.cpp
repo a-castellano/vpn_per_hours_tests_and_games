@@ -60,5 +60,14 @@ std::string Server::getServerIP()
 	return serverIP;
 }
 
+void Server::setServerName(const std::string &name)
+{
+	serverName = name;
+}
+std::string Server::getServerName()
+{
+	return serverName;
+}
+
 Server::~Server() {}
 

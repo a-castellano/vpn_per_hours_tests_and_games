@@ -73,14 +73,15 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         data = self.request.recv(1024)
         processed_data = data.split('|##|')
-        domain = processed_data[0]
-        ip = processed_data[1]
-        action = processed_data[2]
-        self.request.sendall("OK")
-        Lock.acquire()
-        QueueOfRouteRequests.put([domain,ip,action])
-        Lock.release()
-        print data
+        if len(processed_data) == 3:
+            domain = processed_data[0]
+            ip = processed_data[1]
+            action = processed_data[2]
+            self.request.sendall("OK")
+            Lock.acquire()
+            QueueOfRouteRequests.put([domain,ip,action])
+            Lock.release()
+            print data
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):

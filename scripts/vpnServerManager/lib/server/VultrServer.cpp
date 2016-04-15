@@ -192,8 +192,7 @@ bool VultrServer::create() {
 
     createServerRequest = std::string("https://api.vultr.com/v1/server/create");
     createServerPOSTdata =
-        std::string("VPSPLANID=29&OSID=160&SSHKEYID=56d08c10951a6&label=test."
-                    "vpn.windmaker.net&DCID=") +
+        std::string("VPSPLANID=29&OSID=160&SSHKEYID=56d08c10951a6&label=") + this->getServerName() + std::string("&DCID=") +
         std::string(DCID);
 
     if (curlPOST(createServerRequest, createServerPOSTdata, serverJSONSUBID)) {
