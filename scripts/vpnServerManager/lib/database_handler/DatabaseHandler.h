@@ -58,6 +58,7 @@ class DatabaseHandler
 		unsigned int getServerZoneFromToken( const std::string &  );
 		std::vector<std::string> getProvidersFromZone( const unsigned int & );
 		std::string setServerName(const std::string & ,const unsigned int &);
+		bool updateServerName(const std::string &, const std::string &); 
 		std::string getErrorMsg( void );
 	private:
 		std::string address;

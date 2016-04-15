@@ -28,6 +28,8 @@ int main(int argc, char *argv[]) {
   string selectedProvider;
   unsigned int providerRandomId;
 
+	string severName;
+
   Server *server;
 
   string logFile("/var/log/vpnporhours.log");
@@ -59,6 +61,11 @@ int main(int argc, char *argv[]) {
       } else {
         log = string("Zone: ") + to_string(zone);
         writeLog(logFile, log);
+				//Selecting the server's name 
+				severName = db->setServerName(token,zone);
+				log = string("Server Name: ") + severName;
+				writeLog(logFile, log);
+				db->updateServerName(token, severName);
         // Get providers
         db_zones = new DatabaseHandler(address, 3306, user, password,
                                        string("vpn_zones"));
@@ -80,8 +87,10 @@ int main(int argc, char *argv[]) {
         writeLog(logFile, log);
         free(db_zones);
         free(db);
+
         server = CreateServer(selectedProvider, token);
         server->setZone(zone);
+				server->setServerName(severName);
         log = string("Server type: ") + server->serverType();
         writeLog(logFile, log);
         // server->setMachineID(string("3622900"));

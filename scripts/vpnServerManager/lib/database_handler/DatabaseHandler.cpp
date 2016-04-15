@@ -249,7 +249,21 @@ std::string DatabaseHandler::setServerName(const std::string &server_token ,cons
 		}
 		candidateURL.str("");
 	}
-	 std::cout<<	"Candidato: " << finalURL << std::endl;
+
 	return finalURL;
 	} //DatabaseHandler::setServerName
 
+bool DatabaseHandler::updateServerName(const std::string &token, const std::string &name)
+{
+	std::stringstream servername_query;
+	servername_query << "UPDATE servers SET name = '" << name << "' WHERE token='" << token << "'";
+	connect();
+	if ( connected ){
+		std::cout<<"PRIMERO"<<std::endl;
+		if (stmt->execute( servername_query.str() ))
+			std::cout<<"CHUUUUUUURRRAAAAAAAAAA"<<std::endl; 
+	}
+	std::cout<<"CHUUUUUUURRRO"<<std::endl; 
+	return true;
+
+}
