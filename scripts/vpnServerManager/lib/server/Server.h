@@ -23,6 +23,9 @@ class Server
 		const unsigned int getZone();
 		void setZone(const unsigned int &);
 		
+		void setTrueZone(const std::string &);
+		std::string  getTrueZone();
+
 		void setMachineID(const std::string &);
 		std::string getMachineID();
 

@@ -1,10 +1,10 @@
-Start testing: Feb 25 19:57 CET
+Start testing: Mar 21 13:59 CET
 ----------------------------------------------------------
 1/1 Testing: server_request
 1/1 Test: server_request
 Command: "/home/azas/Proyectos/vpnporhoras/scripts/vpnServerManager/bin/server_request_test"
 Directory: /home/azas/Proyectos/vpnporhoras/scripts/vpnServerManager
-"server_request" start time: Feb 25 19:57 CET
+"server_request" start time: Mar 21 13:59 CET
 Output:
 ----------------------------------------------------------
 Running 1 test case...
@@ -14,8 +14,8 @@ Running 1 test case...
 Test time =   0.02 sec
 ----------------------------------------------------------
 Test Passed.
-"server_request" end time: Feb 25 19:57 CET
+"server_request" end time: Mar 21 13:59 CET
 "server_request" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Feb 25 19:57 CET
+End testing: Mar 21 13:59 CET

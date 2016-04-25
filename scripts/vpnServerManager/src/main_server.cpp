@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   string selectedProvider;
   unsigned int providerRandomId;
 
-	string severName;
+  string severName;
 
   Server *server;
 
@@ -61,11 +61,16 @@ int main(int argc, char *argv[]) {
       } else {
         log = string("Zone: ") + to_string(zone);
         writeLog(logFile, log);
-				//Selecting the server's name 
-				severName = db->setServerName(token,zone);
-				log = string("Server Name: ") + severName;
-				writeLog(logFile, log);
-				db->updateServerName(token, severName);
+        // Selecting the server's name
+        severName = db->setServerName(token, zone);
+        log = string("Server Name: ") + severName;
+        writeLog(logFile, log);
+        free(db);
+        db = new DatabaseHandler(address, 3306, user, password, database);
+
+        db->updateDBField(token, string("name"), string("string"), severName);
+        db->updateDBField(token, string("name"), string("string"), severName);
+        free(db);
         // Get providers
         db_zones = new DatabaseHandler(address, 3306, user, password,
                                        string("vpn_zones"));
@@ -86,15 +91,22 @@ int main(int argc, char *argv[]) {
         log = string("Selected provider: ") + selectedProvider;
         writeLog(logFile, log);
         free(db_zones);
-        free(db);
-
+        // free(db);
+        // db = new DatabaseHandler(address, 3306, user, password, database);
         server = CreateServer(selectedProvider, token);
         server->setZone(zone);
-				server->setServerName(severName);
+        server->setServerName(severName);
         log = string("Server type: ") + server->serverType();
         writeLog(logFile, log);
-        // server->setMachineID(string("3622900"));
         if (server->create()) {
+          db->updateDBField(token, string("machine_id"), string("integer"),
+                            server->getMachineID());
+          db->updateDBField(token, string("true_zone"), string("string"),
+                            server->getMachineID());
+          db->updateDBField(token, string("ip"), string("string"),
+                            server->getServerIP());
+          db->updateDBField(token, string("true_zone"), string("string"),
+                            server->getTrueZone());
           log = string("Server created");
           writeLog(logFile, log);
           log = string("True Server ID: ") + server->getMachineID();
@@ -103,6 +115,7 @@ int main(int argc, char *argv[]) {
           writeLog(logFile, log);
         }
         free(server);
+        // free(db);
       }
     }
   } else {
@@ -110,5 +123,5 @@ int main(int argc, char *argv[]) {
     writeLog(logFile, log);
     return -1;
   }
-	return 0;
+  return 0;
 }

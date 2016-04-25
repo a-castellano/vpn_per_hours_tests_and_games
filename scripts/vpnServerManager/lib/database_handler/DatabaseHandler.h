@@ -51,14 +51,15 @@ class DatabaseHandler
 	public:
 		DatabaseHandler( const std::string & , const unsigned int & , const std::string & , const std::string & , const std::string & );
 
-		const bool dataIsWellFormed( void );
-		const bool successConected( void );
-		const bool hasError( void );
+		bool dataIsWellFormed( void );
+		bool successConected( void );
+		bool hasError( void );
 		bool queryTest( void );
 		unsigned int getServerZoneFromToken( const std::string &  );
 		std::vector<std::string> getProvidersFromZone( const unsigned int & );
 		std::string setServerName(const std::string & ,const unsigned int &);
-		bool updateServerName(const std::string &, const std::string &); 
+		bool updateDBField(const std::string &, const std::string &,
+				   const std::string & ,const std::string &);
 		std::string getErrorMsg( void );
 	private:
 		std::string address;

@@ -199,7 +199,7 @@ bool VultrServer::create() {
 			boost::property_tree::read_json(serverJSONSUBID, jsonCreateServer);
 			serverSUBID = std::string(jsonCreateServer.get_child("SUBID").data());
 			setMachineID(serverSUBID);
-
+			setTrueZone(std::string(DCID));
 			createServerIPRequest = std::string("https://api.vultr.com/v1/server/list_ipv4?SUBID=") + getMachineID();
 
 			if (curlGET(createServerIPRequest, serverJSONIP))

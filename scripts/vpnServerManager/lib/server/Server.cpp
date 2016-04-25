@@ -69,5 +69,15 @@ std::string Server::getServerName()
 	return serverName;
 }
 
+void Server::setTrueZone(const std::string &zone)
+{
+	realZone = zone;
+}
+
+std::string Server::getTrueZone()
+{
+	return realZone;
+}
+
 Server::~Server() {}
 

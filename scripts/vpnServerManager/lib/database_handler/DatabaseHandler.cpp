@@ -52,6 +52,10 @@
 DatabaseHandler::DatabaseHandler( const std::string & givenHost , const unsigned int & givenPort , const std::string & givenUser , const std::string & givenPass , const std::string & givenDatabase)
 :pass(givenPass), database(givenDatabase), connected(false) 
 {
+	res = NULL;
+	stmt = NULL;
+	con = NULL;
+
 	// Check that the host and the port are valid
 	boost::regex IPPattern("(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])");
 
@@ -77,12 +81,12 @@ DatabaseHandler::DatabaseHandler( const std::string & givenHost , const unsigned
 
 }
 
-const bool DatabaseHandler::dataIsWellFormed( void )
+bool DatabaseHandler::dataIsWellFormed( void )
 {
 	return dataWellFormed;
 }
 
-const bool DatabaseHandler::successConected( void )
+bool DatabaseHandler::successConected( void )
 {
 	if ( dataWellFormed )
 	{
@@ -97,14 +101,15 @@ const bool DatabaseHandler::successConected( void )
 bool DatabaseHandler::connect( void )
 {
 	try {
-		this->driver = get_driver_instance();
-		this->con = driver->connect(address, user, pass);
-		this->con->setSchema(database);
-		this->stmt = con->createStatement();
+		driver = get_driver_instance();
+		con = driver->connect(address, user, pass);
+		con->setSchema(database);
+		stmt = con->createStatement();
 	} catch ( sql::SQLException &e ){
 		connected = false;
 		error = true;
 		errormsg = std::string("Database conenction failed");
+		std::cout << "# ERR: " << e.what()<<std::endl;
 		return false;
 	}
 	error = false;
@@ -115,13 +120,20 @@ bool DatabaseHandler::connect( void )
 bool DatabaseHandler::disconnect( void )
 {
 	try {
-
-		delete res;
-                delete stmt;
-                delete con;
+		if(res)
+		{
+			res->first();
+			delete res;
+		}
+    delete stmt;
+		delete con;
+		res = NULL;
+		stmt = NULL;
+		con = NULL;
 		connected = false;
 
 	} catch ( sql::SQLException &e ){
+		std::cout << "# ERR: " << e.what()<<std::endl;
 		return false;
 	}
 	return true;
@@ -134,10 +146,10 @@ bool DatabaseHandler::queryTest( void )
 	{
 		res = stmt->executeQuery("SELECT 'Hello World!' AS _message");
 	}
-	this->disconnect();
+	return disconnect();
 }
 
-const bool DatabaseHandler::hasError( void )
+bool DatabaseHandler::hasError( void )
 {
 	return error;
 }
@@ -157,7 +169,6 @@ unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token
 		this->res = stmt->executeQuery( query.str() );
 		if (this->res->next())
 		{
-			//this->res->next();
 			return std::stoi( this->res->getString("zone") );
 		}
 		else
@@ -174,7 +185,9 @@ unsigned int  DatabaseHandler::getServerZoneFromToken( const std::string & token
 		error = true;
 		errormsg = std::string("Failed to conenct."); 
 	}
+	std::cout << "Voy a desconectarme"<<std::endl;
 	disconnect();
+	std::cout << "Deberia estar desconectado"<<std::endl;
 	return 0;
 }
 
@@ -253,17 +266,22 @@ std::string DatabaseHandler::setServerName(const std::string &server_token ,cons
 	return finalURL;
 	} //DatabaseHandler::setServerName
 
-bool DatabaseHandler::updateServerName(const std::string &token, const std::string &name)
+bool DatabaseHandler::updateDBField(const std::string &token, const std::string &field, const std::string &type ,const std::string &value) 
 {
-	std::stringstream servername_query;
-	servername_query << "UPDATE servers SET name = '" << name << "' WHERE token='" << token << "'";
-	connect();
-	if ( connected ){
-		std::cout<<"PRIMERO"<<std::endl;
-		if (stmt->execute( servername_query.str() ))
-			std::cout<<"CHUUUUUUURRRAAAAAAAAAA"<<std::endl; 
+	std::stringstream query;
+	if (type == std::string("string"))
+	{
+		query << "UPDATE servers SET " << field << " = '" << value << "' WHERE token='" << token << "'";
 	}
-	std::cout<<"CHUUUUUUURRRO"<<std::endl; 
+	else
+	{
+		query << "UPDATE servers SET " << field << " = " << value << " WHERE token='" << token << "'";
+	}
+	connect();
+	if ( connected )
+	{
+		stmt->execute( query.str() );
+	}
+	disconnect();
 	return true;
-
 }
