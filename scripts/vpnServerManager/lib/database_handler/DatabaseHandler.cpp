@@ -250,6 +250,7 @@ std::string DatabaseHandler::setServerName(const std::string &server_token ,cons
 			server_names.insert( res->getString("name") );
 		}
 	}
+	res->first();
 	disconnect();
 
 	for (int i = 1 ,finded = false; finded==false ; i++){

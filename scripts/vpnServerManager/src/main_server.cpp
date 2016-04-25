@@ -91,8 +91,6 @@ int main(int argc, char *argv[]) {
         log = string("Selected provider: ") + selectedProvider;
         writeLog(logFile, log);
         free(db_zones);
-        // free(db);
-        // db = new DatabaseHandler(address, 3306, user, password, database);
         server = CreateServer(selectedProvider, token);
         server->setZone(zone);
         server->setServerName(severName);
@@ -107,15 +105,18 @@ int main(int argc, char *argv[]) {
                             server->getServerIP());
           db->updateDBField(token, string("true_zone"), string("string"),
                             server->getTrueZone());
+					db->updateDBField(token, string("provider"), string("string"),selectedProvider);
+					db->updateDBField(token, string("status"), string("string"),string("Setting up"));
           log = string("Server created");
           writeLog(logFile, log);
           log = string("True Server ID: ") + server->getMachineID();
           writeLog(logFile, log);
           log = string("IP: ") + server->getServerIP();
           writeLog(logFile, log);
+					
         }
         free(server);
-        // free(db);
+        //free(db);
       }
     }
   } else {
