@@ -286,3 +286,4 @@ bool DatabaseHandler::updateDBField(const std::string &token, const std::string 
 	disconnect();
 	return true;
 }
+
