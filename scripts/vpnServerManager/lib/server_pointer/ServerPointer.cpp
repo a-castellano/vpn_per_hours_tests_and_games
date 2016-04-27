@@ -15,7 +15,6 @@ ServerPointer::ServerPointer(const std::string &server, const int port)
     : server(server), port(port) {}
 
 bool ServerPointer::point(const std::string &subdomain, const std::string &ip) {
-//test
 	int sockfd, n;
   struct sockaddr_in serv_addr;
   struct hostent *server;
