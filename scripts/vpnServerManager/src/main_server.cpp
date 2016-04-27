@@ -116,7 +116,6 @@ int main(int argc, char *argv[]) {
 					
         }
         free(server);
-        //free(db);
       }
     }
   } else {

@@ -61,6 +61,7 @@ class DatabaseHandler
 		bool updateDBField(const std::string &, const std::string &,
 				   const std::string & ,const std::string &);
 		std::string getErrorMsg( void );
+
 	private:
 		std::string address;
 		std::string user;

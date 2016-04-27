@@ -7,9 +7,10 @@
 class ServerPointer
 {
 	public:
-		ServerPointer(const unsigned int &);
+		ServerPointer(const std::string &, const int &);
 		bool point(const std::string &, const std::string &);
 		bool unpoint(const std::string &);
 	private:
-		unsigned int port;
+		std::string server;
+		int port;
 };
