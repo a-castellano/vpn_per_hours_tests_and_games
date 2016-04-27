@@ -106,7 +106,6 @@ if __name__ == "__main__":
     worker = threading.Thread(target=processRoute53Request)
     worker.setDaemon(True)
     worker.start()
-
     while True:
         continue
 
