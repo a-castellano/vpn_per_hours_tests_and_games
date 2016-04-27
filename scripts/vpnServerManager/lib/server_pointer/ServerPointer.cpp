@@ -19,11 +19,10 @@ bool ServerPointer::point(const std::string &subdomain, const std::string &ip) {
 	int sockfd, n;
   struct sockaddr_in serv_addr;
   struct hostent *server;
-
-  char buffer[256];
+ char buffer[256];
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
-    std::cout<<"ERROR opening socket"<<std::endl;
+    std::cout << "ERROR opening socket" << std::endl;
   server = gethostbyname(this->server);
   if (server == NULL) {
     fprintf(stderr, "ERROR, no such host\n");
