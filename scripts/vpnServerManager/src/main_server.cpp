@@ -6,6 +6,7 @@
 #include <ServerRequest.h>
 #include <Logger.h>
 #include <ServerFactory.h>
+#include <ServerPointer.h>
 
 using namespace std;
 
@@ -36,6 +37,9 @@ int main(int argc, char *argv[]) {
   string log("");
 
   ServerRequest request(argv[1]);
+
+  ServerPointer *pointer =
+      new ServerPointer(string("pointer.windmaker.net"), 8745);
 
   log = string("Request: ") + string(argv[1]);
   writeLog(logFile, log);
@@ -99,21 +103,23 @@ int main(int argc, char *argv[]) {
         if (server->create()) {
           db->updateDBField(token, string("machine_id"), string("integer"),
                             server->getMachineID());
-          db->updateDBField(token, string("true_zone"), string("string"),
-                            server->getMachineID());
           db->updateDBField(token, string("ip"), string("string"),
                             server->getServerIP());
           db->updateDBField(token, string("true_zone"), string("string"),
                             server->getTrueZone());
-					db->updateDBField(token, string("provider"), string("string"),selectedProvider);
-					db->updateDBField(token, string("status"), string("string"),string("Setting up"));
+          db->updateDBField(token, string("provider"), string("string"),
+                            selectedProvider);
+          db->updateDBField(token, string("status"), string("string"),
+                            string("Setting up"));
           log = string("Server created");
           writeLog(logFile, log);
           log = string("True Server ID: ") + server->getMachineID();
           writeLog(logFile, log);
           log = string("IP: ") + server->getServerIP();
           writeLog(logFile, log);
-					
+          if (pointer->point(severName, server->getServerIP())) {
+            cout << "POINTING SUCCESS" << endl;
+          }
         }
         free(server);
       }
