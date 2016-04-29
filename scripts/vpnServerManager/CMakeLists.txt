@@ -15,6 +15,7 @@ INCLUDE_DIRECTORIES(lib/server_request)
 INCLUDE_DIRECTORIES(lib/database_handler)
 INCLUDE_DIRECTORIES(lib/log)
 INCLUDE_DIRECTORIES(lib/server)
+INCLUDE_DIRECTORIES(lib/server_pointer)
 
 ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp )
 TARGET_LINK_LIBRARIES( main ${CONAN_LIBS})
@@ -31,6 +32,9 @@ TARGET_LINK_LIBRARIES( log_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 ADD_EXECUTABLE( server_test src/server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
   lib/server/VultrServer.cpp lib/server/ServerFactory.cpp )
 TARGET_LINK_LIBRARIES( server_test ${CONAN_LIBS})
+
+ADD_EXECUTABLE( pointer_test src/server_pointer.cpp lib/server_pointer/ServerPointer.cpp )
+TARGET_LINK_LIBRARIES( pointer_test ${CONAN_LIBS})
 
 ADD_EXECUTABLE( main_server_test src/main_server.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
   lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp

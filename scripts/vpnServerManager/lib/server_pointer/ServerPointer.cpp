@@ -11,40 +11,56 @@
 #include <netdb.h>
 #include "ServerPointer.h"
 
-ServerPointer::ServerPointer(const std::string &server, const int port)
+ServerPointer::ServerPointer(const std::string &server, const int &port)
     : server(server), port(port) {}
 
 bool ServerPointer::point(const std::string &subdomain, const std::string &ip) {
-	int sockfd, n;
+  int sockfd;
+  int n;
   struct sockaddr_in serv_addr;
   struct hostent *server;
- char buffer[256];
+
+	char response[256];
+
+	std::string separator = "|##|";
+	std::string msg = subdomain + separator + ip + separator + std::string("ADD");
+
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd < 0)
-    std::cout << "ERROR opening socket" << std::endl;
-  server = gethostbyname(this->server);
-  if (server == NULL) {
-    fprintf(stderr, "ERROR, no such host\n");
-    exit(0);
+  if (sockfd < 0) {
+    std::cerr << "ERROR opening socket" << std::endl;
+    return false;
   }
+
+  server = gethostbyname(this->server.c_str());
+  if (server == NULL) {
+    std::cerr << "ERROR, no such host" << std::endl;
+    return false;
+  }
+
   bzero((char *)&serv_addr, sizeof(serv_addr));
   serv_addr.sin_family = AF_INET;
   bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr,
         server->h_length);
-  serv_addr.sin_port = htons(portno);
+  serv_addr.sin_port = htons(port);
   if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    error("ERROR connecting");
-  printf("Please enter the message: ");
-  bzero(buffer, 256);
-  fgets(buffer, 255, stdin);
-  n = write(sockfd, buffer, strlen(buffer));
+	{
+		std::cerr << "ERROR connecting" << std::endl;
+		return false;
+	}
+  n = write(sockfd, msg.c_str(), msg.size());
+  if (n < 0){
+		std::cerr << "ERROR writing to socket"<<std::endl;
+		return false;
+	}
+  bzero(response, 256);
+  n = read(sockfd, response, 255);
   if (n < 0)
-    error("ERROR writing to socket");
-  bzero(buffer, 256);
-  n = read(sockfd, buffer, 255);
-  if (n < 0)
-                                                                                                                                                                                                                                                                                                                                                                         error("ERROR reading
-																																																			 from socket");
-																																											    printf("%s\n",buffer);
-																																													    close(sockfd);
+	{
+		std::cerr << "ERROR reading from socket" << std::endl;
+		return false;
+	}
+	std::cout<<response<<std::endl;
+  close(sockfd);
+
+  return true;
 }
