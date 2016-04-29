@@ -1,33 +1,39 @@
-// Álvaro Castellano Vela 
+// Álvaro Castellano Vela
 // 29/04/2016
 
 #include <iostream>
 #include <string>
 #include <ServerPointer.h>
 
-using namespace std;   
+using namespace std;
 
-int main(int argc, char *argv[])
-{
-	if (argc != 3)
-	{
-		return -1;
-	}
+int main() {
 
-	string subdomain(argv[1]);
-	string ip(argv[2]);
+  string subdomain("windmaker.net");
+  string ip("37.187.126.42");
 
-	ServerPointer  *pointer = new ServerPointer(string("pointer.windmaker.net"),8745);
+  ServerPointer *pointer =
+      new ServerPointer(string("pointer.windmaker.net"), 8745);
 
-	if ( pointer->point(subdomain, ip) )
-	{
-		cout<< "SUCCESS" << endl;
-	}
-	else{
-		cout << "FAILED" << endl;
-	}
+  for (int i = 1; i < 100; i++) {
 
-	delete pointer;
+    if (pointer->point(string("test") + to_string(i) + string(".") + subdomain,
+                       ip)) {
+      cout << "POINTING SUCCESS" << endl;
+    } else {
+      cout << "POINTING FAILED" << endl;
+    }
+  }
 
-	return 0;
+  for (int i = 1; i < 100; i++) {
+    if (pointer->unpoint(string("test") + to_string(i) + string(".") +
+                         subdomain)) {
+      cout << "UNPOINTING SUCCESS" << endl;
+    } else {
+      cout << "UNPOINTING FAILED" << endl;
+    }
+  }
+  delete pointer;
+
+  return 0;
 }
