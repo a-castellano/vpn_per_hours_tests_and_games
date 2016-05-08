@@ -122,6 +122,8 @@ int main(int argc, char *argv[]) {
           if (pointer->point(severName, server->getServerIP())) {
             cout << "POINTING SUCCESS" << endl;
           }
+					//Adter poining we have to make our ansible variables
+					
         }
         free(server);
       }
