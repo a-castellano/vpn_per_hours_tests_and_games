@@ -5,25 +5,7 @@
 #define DATABASEHANDLER_H
 #endif
 
-#ifndef STRING
-#include <string>
-#endif
 
-#ifndef VECTOR
-#include <vector>
-#endif
-
-#ifndef STDLIB
-#include <stdlib.h>
-#endif
-
-#ifndef IOSTREAM
-#include <iostream>
-#endif
-
-#ifndef MYSQL_CONNECTION_H
-#include "mysql_connection.h"
-#endif
 
 #ifndef CPPCONN_DRIVER_H
 #include <cppconn/driver.h>
@@ -61,6 +43,8 @@ class DatabaseHandler
 		bool updateDBField(const std::string &, const std::string &,
 				   const std::string & ,const std::string &);
 		std::string getErrorMsg( void );
+
+		std::vector<std::string> getVPNGroups(void);
 
 	private:
 		std::string address;

@@ -5,6 +5,7 @@
 #define SERVER_H
 
 #include <string>
+#include <vector>
 #include <iostream>
 #include "api_keys.h"
 
@@ -36,8 +37,10 @@ class Server
 		std::string getServerName(); 
 
 		static size_t data_write(void*, size_t , size_t ,void*);//this
-		//this function should be private
 
+		void setVpnGroups(const std::vector<std::string> &);
+
+		//this function should be private
 		~Server();
 
 	private:
@@ -48,6 +51,7 @@ class Server
 		std::string machineID;
 		std::string serverIP;
 		std::string serverName;
+		std::vector<std::string> vpnGroups;
 };
 
 #endif
