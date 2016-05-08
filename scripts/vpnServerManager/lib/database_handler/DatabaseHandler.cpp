@@ -287,3 +287,88 @@ bool DatabaseHandler::updateDBField(const std::string &token, const std::string 
 	return true;
 }
 
+std::vector<unsigned int> DatabaseHandler::getVPNUsers(const std::string & token)
+{
+	unsigned int serverID=0;
+	unsigned int user_candidate;
+
+	std::vector<unsigned int> groups;
+	std::vector<unsigned int> users;
+
+	std::stringstream query;
+
+	query << "SELECT id FROM servers WHERE token='" << token << "';";
+	connect();
+	if (connected)
+	{
+		this->res = stmt->executeQuery( query.str() );
+		if (this->res->next())
+		{
+			serverID = std::stoi(this->res->getString("id"));
+		}
+	}
+	disconnect();
+
+	query.clear();
+	query.str(std::string());
+	//Get groups
+	if (serverID){
+		query << "SELECT vpn_group_id FROM serversvpngroups WHERE vpn_server_id="<< serverID;
+		connect();
+		if( connected )
+		{
+			this->res = stmt->executeQuery( query.str() );
+			while ( this->res->next() )
+			{
+				groups.push_back( std::stoi(res->getString("vpn_group_id")) );
+			}
+		}
+		disconnect();
+		query.clear();
+		query.str(std::string());
+
+		for (unsigned int group : groups) { 
+			std::cout << "Group ID: " << group << std::endl;
+		}
+	}
+	if (groups.size()) //Select Users from groups
+	{
+		for (unsigned int group : groups) {
+			query << "SELECT vpn_user_id FROM vpnusersgroups  WHERE vpn_group_id=" << group ;
+			connect();
+			if( connected )
+			{
+				this->res = stmt->executeQuery( query.str() );
+				while ( this->res->next() ){
+					user_candidate = std::stoi(res->getString("vpn_user_id"));
+					if ( std::find(users.begin(), users.end(), user_candidate) == users.end() )
+					{
+						users.push_back(user_candidate);
+					}
+				}
+			}
+			disconnect();
+			query.clear();
+			query.str(std::string());
+		}
+	}
+	else{ //no groups, all users allowed
+		query << "SELECT vpnusers.id FROM vpnusers JOIN servers WHERE servers.token='" << token << "'";
+		connect();
+		if( connected )
+		{
+			this->res = stmt->executeQuery( query.str() );
+			while ( this->res->next() ){
+				users.push_back( std::stoi(res->getString("id")) );
+			}
+		}
+		disconnect();
+		query.clear();
+		query.str(std::string());
+	}
+	for (unsigned int user : users)
+	{
+		 std::cout << "USER ID: " << user << std::endl;
+	}
+	return groups;
+}

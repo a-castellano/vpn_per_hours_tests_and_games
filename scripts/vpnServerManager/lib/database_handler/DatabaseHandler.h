@@ -44,7 +44,7 @@ class DatabaseHandler
 				   const std::string & ,const std::string &);
 		std::string getErrorMsg( void );
 
-		std::vector<std::string> getVPNGroups(void);
+		std::vector<unsigned int> getVPNUsers(const std::string & );
 
 	private:
 		std::string address;

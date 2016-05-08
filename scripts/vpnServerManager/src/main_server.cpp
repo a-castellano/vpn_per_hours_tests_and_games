@@ -58,6 +58,8 @@ int main(int argc, char *argv[]) {
       writeLog(logFile, log);
       return -1;
     } else {
+
+
       zone = db->getServerZoneFromToken(token);
       if (db->hasError()) {
         writeLog(logFile, db->getErrorMsg());
