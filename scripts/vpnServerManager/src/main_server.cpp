@@ -33,6 +33,9 @@ int main(int argc, char *argv[]) {
 
   Server *server;
 
+
+	vector VPNusers;
+
   string logFile("/var/log/vpnporhours.log");
   string log("");
 
@@ -59,6 +62,8 @@ int main(int argc, char *argv[]) {
       return -1;
     } else {
 
+			VPNusers = getVPNUsers(token);
+			return 0
 
       zone = db->getServerZoneFromToken(token);
       if (db->hasError()) {
@@ -122,7 +127,7 @@ int main(int argc, char *argv[]) {
           if (pointer->point(severName, server->getServerIP())) {
             cout << "POINTING SUCCESS" << endl;
           }
-					//Adter poining we have to make our ansible variables
+					//After poining we have to make our ansible variables
 					
         }
         free(server);
