@@ -1,12 +1,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <unistd.h>
 
 #include <DatabaseHandler.h>
 #include <ServerRequest.h>
 #include <Logger.h>
 #include <ServerFactory.h>
 #include <ServerPointer.h>
+#include <sshTester.h>
 
 using namespace std;
 
@@ -33,8 +38,21 @@ int main(int argc, char *argv[]) {
 
   Server *server;
 
+  vector<unsigned int> VPNusers;
+  time_t now;
+  tm *ltm;
 
-	vector VPNusers;
+  string filename;
+  string chap_secrets_filename;
+  string inventory_filename;
+  string VPNusername;
+  string VPNpassword;
+
+  ofstream chap_secrets;
+  string iprange = "192.168.155.";
+  unsigned int ipnumber = 210;
+
+  ofstream inventory;
 
   string logFile("/var/log/vpnporhours.log");
   string log("");
@@ -61,10 +79,6 @@ int main(int argc, char *argv[]) {
       writeLog(logFile, log);
       return -1;
     } else {
-
-			VPNusers = getVPNUsers(token);
-			return 0
-
       zone = db->getServerZoneFromToken(token);
       if (db->hasError()) {
         writeLog(logFile, db->getErrorMsg());
@@ -127,8 +141,62 @@ int main(int argc, char *argv[]) {
           if (pointer->point(severName, server->getServerIP())) {
             cout << "POINTING SUCCESS" << endl;
           }
-					//After poining we have to make our ansible variables
-					
+
+          // After poining we have to make our ansible variables
+          now = time(0);
+          ltm = localtime(&now);
+          filename = string("serverName_") + to_string(1900 + ltm->tm_year) +
+                     string("-");
+          if (ltm->tm_mon < 10) {
+            filename = filename + string("0");
+          }
+          filename = filename + to_string(ltm->tm_mon) + string("-");
+          if (ltm->tm_mday < 10) {
+            filename = filename + string("0");
+          }
+          filename = filename + to_string(ltm->tm_mday) + string("_");
+          if (ltm->tm_hour < 10) {
+            filename = filename + string("0");
+          }
+          filename = filename + to_string(ltm->tm_hour) + string(":");
+          if (ltm->tm_min < 10) {
+            filename = filename + string("0");
+          }
+          filename = filename + to_string(ltm->tm_min) + string(":");
+          if (ltm->tm_sec < 10) {
+            filename = filename + string("0");
+          }
+          filename = filename + to_string(ltm->tm_sec);
+          chap_secrets_filename = string("/home/azas/Proyectos/vpnporhoras/ansible/files/secrets/") + filename;
+          inventory_filename = string("/home/azas/Proyectos/vpnporhoras/ansible/inventories/") + filename;
+					log = string("VPN USER PASSWORD FILE:") + chap_secrets_filename;
+					writeLog(logFile,log);
+					log	=string("VPN users:");
+					writeLog(logFile,log);
+					VPNusers	= db->getVPNUsers(token);
+					if( VPNusers.size() )
+					{
+            chap_secrets.open(chap_secrets_filename.c_str());
+            for (unsigned int userID : VPNusers) {
+              db->getVPNUserPassword(userID, &VPNusername, &VPNpassword);
+							writeLog(logFile,string("ID:") + to_string(userID));
+							writeLog(logFile,string("user:")+VPNusername);
+							writeLog(logFile,string("pass:")+VPNpassword);
+							chap_secrets << VPNusername << "\t*\t" << VPNpassword << "\t*\t" << iprange << ipnumber << "\n";
+							ipnumber++;
+            }
+            chap_secrets.close();
+					}
+					inventory.open(inventory_filename.c_str());
+					inventory << "[target]\n" << server->getServerIP() <<"\n";
+					inventory.close();
+					writeLog(logFile,string("Waiting the server"));
+					//while(!testSSHConection(server->getServerIP(),22))
+					//{
+					//	cout << "ESPERANDO"<<endl;
+					//	usleep(1000000);
+					//}
+					writeLog(logFile,string("Server Ready to deploy"));
         }
         free(server);
       }

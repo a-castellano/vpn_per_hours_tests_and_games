@@ -326,10 +326,6 @@ std::vector<unsigned int> DatabaseHandler::getVPNUsers(const std::string & token
 		disconnect();
 		query.clear();
 		query.str(std::string());
-
-		for (unsigned int group : groups) { 
-			std::cout << "Group ID: " << group << std::endl;
-		}
 	}
 	if (groups.size()) //Select Users from groups
 	{
@@ -366,9 +362,28 @@ std::vector<unsigned int> DatabaseHandler::getVPNUsers(const std::string & token
 		query.clear();
 		query.str(std::string());
 	}
-	for (unsigned int user : users)
-	{
-		 std::cout << "USER ID: " << user << std::endl;
-	}
-	return groups;
+	return users;
 }
+
+bool DatabaseHandler::getVPNUserPassword(const unsigned int & userID, std::string *username , std::string
+																								*password)
+{
+	std::stringstream query;
+
+	query << "SELECT name,password FROM vpnusers WHERE id =" << userID;
+	connect();
+	if( connected )
+	{
+		this->res = stmt->executeQuery( query.str() );
+		this->res->next();
+		*username = res->getString("name"); 
+		*password = res->getString("password");
+	}
+	else
+	{
+		return false;
+	}
+	disconnect();
+	return true;
+}
+

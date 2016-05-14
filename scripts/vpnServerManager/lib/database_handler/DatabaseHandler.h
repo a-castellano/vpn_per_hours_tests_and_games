@@ -45,7 +45,8 @@ class DatabaseHandler
 		std::string getErrorMsg( void );
 
 		std::vector<unsigned int> getVPNUsers(const std::string & );
-
+		bool getVPNUserPassword(const unsigned int &, std::string *,
+					std::string * );
 	private:
 		std::string address;
 		std::string user;
