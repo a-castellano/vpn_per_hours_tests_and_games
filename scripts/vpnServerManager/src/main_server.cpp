@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ctime>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <DatabaseHandler.h>
 #include <ServerRequest.h>
@@ -53,6 +54,8 @@ int main(int argc, char *argv[]) {
   unsigned int ipnumber = 210;
 
   ofstream inventory;
+
+	string ansibleCommand;
 
   string logFile("/var/log/vpnporhours.log");
   string log("");
@@ -191,12 +194,14 @@ int main(int argc, char *argv[]) {
 					inventory << "[target]\n" << server->getServerIP() <<"\n";
 					inventory.close();
 					writeLog(logFile,string("Waiting the server"));
-					//while(!testSSHConection(server->getServerIP(),22))
-					//{
-					//	cout << "ESPERANDO"<<endl;
-					//	usleep(1000000);
-					//}
+					while(!testSSHConection(server->getServerIP(),22))
+					{
+						writeLog(logFile,string("Waiting...")); 
+						usleep(1000000);
+					}
 					writeLog(logFile,string("Server Ready to deploy"));
+					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyectos/vpnporhoras/ansible/pptp_setup.yml -i ") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\"");
+					writeLog(logFile,ansibleCommand);
         }
         free(server);
       }
