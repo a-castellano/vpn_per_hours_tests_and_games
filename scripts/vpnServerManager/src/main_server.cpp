@@ -199,9 +199,11 @@ int main(int argc, char *argv[]) {
 						writeLog(logFile,string("Waiting...")); 
 						usleep(1000000);
 					}
+					usleep(50000000);   
 					writeLog(logFile,string("Server Ready to deploy"));
-					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyectos/vpnporhoras/ansible/pptp_setup.yml -i ") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\"");
+					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyectos/vpnporhoras/ansible/pptp_setup.yml -i ") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\" --key-file=/home/azas/Proyectos/vpnporhoras/ssh_keys/id_rsa -e 'host_key_checking=False'");
 					writeLog(logFile,ansibleCommand);
+					system(ansibleCommand.c_str());
         }
         free(server);
       }

@@ -67,7 +67,7 @@ def processRoute53Request():
                     success = False
 
             print "Completed Handle for {}".format(request)
-
+        sleep(0.1);
 
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     worker.setDaemon(True)
     worker.start()
     while True:
+        sleep(1);
         continue
 
 exit(0)

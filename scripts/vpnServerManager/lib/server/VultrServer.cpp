@@ -155,7 +155,6 @@ bool VultrServer::create() {
 
   if (curlGET(std::string("https://api.vultr.com/v1/regions/list"), json)) {
     zone_name = zoneName();
-    std::cout << zone_name << std::endl;
     boost::property_tree::read_json(json, regions);
 
     end = regions.end();
@@ -177,6 +176,7 @@ bool VultrServer::create() {
     } // for
     // Select one DCID
     if (currentDCID.size() == 0) {
+			std::cout<<"NO HAY ZONAS "<<std::endl; 
       return false; // and write and erro msg
     } else {
       if (currentDCID.size() == 1) {
