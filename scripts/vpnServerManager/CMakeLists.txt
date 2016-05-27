@@ -40,6 +40,12 @@ TARGET_LINK_LIBRARIES( pointer_test ${CONAN_LIBS})
 ADD_EXECUTABLE( ssh_test src/ssh_test.cpp lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( ssh_test ${CONAN_LIBS} ssh) 
 
+ADD_EXECUTABLE( http_test src/http_server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
+  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
+  lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp 
+  lib/ssh_tester/sshTester.cpp )
+TARGET_LINK_LIBRARIES( http_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh pthread ) 
+
 ADD_EXECUTABLE( main_server_test src/main_server.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
   lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
   lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp
