@@ -1,7 +1,7 @@
 // VultrServer.cpp
 // Álvaro Castellano Vela 12/03/2016
 
-#define CURL_STATICLIB
+//#define CURL_STATICLIB
 
 #include "VultrServer.h"
 
@@ -44,7 +44,6 @@ bool VultrServer::curlGET(const std::string &url, std::stringstream &result) {
 
   std::stringstream header;
   std::ostringstream os;
-
   curl = curl_easy_init();
 
   struct curl_slist *chunk = NULL;
@@ -68,9 +67,9 @@ bool VultrServer::curlGET(const std::string &url, std::stringstream &result) {
       return false;
     }
 
-    curl_easy_cleanup(curl);
+    //curl_easy_cleanup(curl);
     curl_slist_free_all(chunk);
-
+		curl_easy_cleanup(curl);
     result.str("");
     result << os.str();
   }
@@ -110,8 +109,9 @@ bool VultrServer::curlPOST(const std::string &url, const std::string &POSTdata,
       return false;
     }
 
-    curl_easy_cleanup(curl);
+    
     curl_slist_free_all(chunk);
+		curl_easy_cleanup(curl);  
     result.str("");
     result << os.str();
   }
@@ -189,7 +189,6 @@ bool VultrServer::create() {
     }
 
     // first test
-
     createServerRequest = std::string("https://api.vultr.com/v1/server/create");
     createServerPOSTdata =
         std::string("VPSPLANID=29&OSID=160&SSHKEYID=56d08c10951a6&label=") + this->getServerName() + std::string("&DCID=") +

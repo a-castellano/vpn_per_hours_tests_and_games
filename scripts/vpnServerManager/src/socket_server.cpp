@@ -24,10 +24,12 @@
 #include <ServerPointer.h>
 #include <sshTester.h>
 
-//#include <thread>
+#include <ctime>
+#include <boost/asio.hpp>
 
-using namespace boost;
+using boost::asio::ip::tcp;
 using namespace std;
+using namespace boost;
 
 string address("paula.es.una.ninja");
 string user("vpn");
@@ -35,7 +37,6 @@ string password("XLRc3H1y4Db0G4qR630Qk2xPF3D88P");
 string database("vpn");
 
 boost::thread_group threads;
-
 
 bool processRequest(const std::string currentRequest) {
   std::string command;
@@ -225,9 +226,33 @@ bool processRequest(const std::string currentRequest) {
 }
 
 
-int main(int argc, const char * argv[])
-{
-	cout << "YOLO" << endl;
-  return 0;
+
+
+std::string make_daytime_string() {
+  using namespace std; // For time_t, time and ctime;
+  time_t now = time(0);
+  return ctime(&now);
 }
 
+int main() {
+  try {
+    boost::asio::io_service io_service;
+
+    tcp::endpoint endpoint(tcp::v4(), 8087);
+    tcp::acceptor acceptor(io_service, endpoint);
+
+		
+
+    for (;;) {
+      tcp::iostream stream;
+      acceptor.accept(*stream.rdbuf());
+      stream << "test" << make_daytime_string();
+			cout << stream.rdbuf()->str() << endl;
+			threads.add_thread( new boost::thread(processRequest, string(stream.rdbuf())) );
+    }
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+  }
+
+  return 0;
+}

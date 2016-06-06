@@ -52,6 +52,14 @@ ADD_EXECUTABLE( main_server_test src/main_server.cpp lib/server/Server.cpp lib/s
   lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( main_server_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
 
+ADD_EXECUTABLE( socket_test src/socket_server.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
+  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
+  lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp
+  lib/ssh_tester/sshTester.cpp )
+TARGET_LINK_LIBRARIES( socket_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
+
+
+
 
 add_test(NAME server_request COMMAND ./bin/server_request_test )
 
