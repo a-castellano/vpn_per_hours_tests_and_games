@@ -27,6 +27,8 @@
 //#include <thread>
 
 using namespace boost;
+using namespace boost::system;
+using namespace boost::asio;
 using namespace std;
 
 string address("paula.es.una.ninja");
@@ -227,7 +229,14 @@ bool processRequest(const std::string currentRequest) {
 
 int main(int argc, const char * argv[])
 {
-	cout << "YOLO" << endl;
+  io_service io_service;
+  ip::tcp::endpoint endpoint{ip::tcp::v4(), 8080};
+  ip::tcp::acceptor acceptor{io_service, endpoint};
+
+  acceptor.listen();
+  accept_and_run(acceptor, io_service);
+
+  io_service.run();
   return 0;
 }
 

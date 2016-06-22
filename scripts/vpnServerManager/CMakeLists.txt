@@ -1,12 +1,13 @@
 project(HTTP_test)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+
 include(conanbuildinfo.cmake)
+CONAN_BASIC_SETUP()
 
 find_package(Threads)
 
-conan_basic_setup()
 enable_testing()
 
 INCLUDE_DIRECTORIES(src)
@@ -17,6 +18,9 @@ INCLUDE_DIRECTORIES(lib/log)
 INCLUDE_DIRECTORIES(lib/server)
 INCLUDE_DIRECTORIES(lib/server_pointer)
 INCLUDE_DIRECTORIES(lib/ssh_tester)
+
+
+MESSAGE( STATUS "CONAN_LIBS:         " ${CONAN_LIBS} )
 
 ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp )
 TARGET_LINK_LIBRARIES( main ${CONAN_LIBS})
@@ -40,16 +44,16 @@ TARGET_LINK_LIBRARIES( pointer_test ${CONAN_LIBS})
 ADD_EXECUTABLE( ssh_test src/ssh_test.cpp lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( ssh_test ${CONAN_LIBS} ssh) 
 
-ADD_EXECUTABLE( http_test src/http_server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
-  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
-  lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp 
-  lib/ssh_tester/sshTester.cpp )
-TARGET_LINK_LIBRARIES( http_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh pthread ) 
+#ADD_EXECUTABLE( http_test src/http_server_test.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
+#  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
+#  lib/database_handler/DatabaseHandler.cpp  lib/server_pointer/ServerPointer.cpp 
+#  lib/ssh_tester/sshTester.cpp )
+#TARGET_LINK_LIBRARIES( http_test ${CONAN_LIBS}   mysqlcppconn ssh pthread  ) 
 
 ADD_EXECUTABLE( main_server_test src/main_server.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
-  lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
-  lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp
-  lib/ssh_tester/sshTester.cpp )
+   lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/server_request/ServerRequest.cpp
+   lib/database_handler/DatabaseHandler.cpp lib/log/Log.cpp lib/log/Logger.cpp lib/server_pointer/ServerPointer.cpp
+   lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( main_server_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
 
 ADD_EXECUTABLE( socket_test src/socket_server.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp

@@ -113,7 +113,7 @@ bool processRequest(const std::string currentRequest) {
         db = new DatabaseHandler(address, 3306, user, password, database);
         db->updateDBField(token, string("name"), string("string"), severName);
         db->updateDBField(token, string("name"), string("string"), severName);
-        free(db);
+        //free(db);
 
         db_zones = new DatabaseHandler(address, 3306, user, password,
                                        string("vpn_zones"));
@@ -177,8 +177,8 @@ bool processRequest(const std::string currentRequest) {
 						filename = filename + string("0");
 					}
 					filename = filename + to_string(ltm->tm_sec);
-					chap_secrets_filename = string("/home/azas/Proyectos/vpnporhoras/ansible/files/secrets/") + filename;
-					inventory_filename = string("/home/azas/Proyectos/vpnporhoras/ansible/inventories/") + filename;
+					chap_secrets_filename = string("/home/azas/Proyects/vpnporhoras/ansible/files/secrets/") + filename;
+					inventory_filename = string("/home/azas/Proyects/vpnporhoras/ansible/inventories/") + filename;
 
 					log = string("VPN USER PASSWORD FILE:") + chap_secrets_filename;
 					writeLog(logFile,log);
@@ -208,7 +208,7 @@ bool processRequest(const std::string currentRequest) {
 					}
 					usleep(50000000);
 					writeLog(logFile,string("Server Ready to deploy"));
-					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyectos/vpnporhoras/ansible/pptp_setup.yml -i") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\" --key-file=/home/azas/Proyectos/vpnporhoras/ssh_keys/id_rsa -e 'host_key_checking=False'");
+					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyects/vpnporhoras/ansible/pptp_setup.yml -i") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\" --key-file=/home/azas/Proyects/vpnporhoras/ssh_keys/id_rsa -e 'host_key_checking=False'");
 					writeLog(logFile,ansibleCommand);
 					std::system(ansibleCommand.c_str());
 
@@ -235,20 +235,25 @@ std::string make_daytime_string() {
 }
 
 int main() {
+
+  std::stringstream ss;
+
   try {
     boost::asio::io_service io_service;
 
     tcp::endpoint endpoint(tcp::v4(), 8087);
     tcp::acceptor acceptor(io_service, endpoint);
 
-		
+
 
     for (;;) {
       tcp::iostream stream;
       acceptor.accept(*stream.rdbuf());
+      ss << stream.rdbuf() ;
       stream << "test" << make_daytime_string();
-			cout << stream.rdbuf()->str() << endl;
-			threads.add_thread( new boost::thread(processRequest, string(stream.rdbuf())) );
+			cout << stream.rdbuf() << endl;
+      threads.add_thread( new boost::thread(processRequest, ss.str() ) );
+      ss.str("");
     }
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
