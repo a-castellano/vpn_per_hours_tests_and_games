@@ -58,6 +58,10 @@ bool VultrServer::curlGET(const std::string &url, std::stringstream &result) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+    //curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1); 
+    curl_easy_setopt(curl, CURLOPT_DNS_LOCAL_IP4, "8.8.8.8");
+    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &data_write);
     curl_easy_setopt(curl, CURLOPT_FILE, &os);
@@ -102,6 +106,10 @@ bool VultrServer::curlPOST(const std::string &url, const std::string &POSTdata,
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+    //curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1); 
+    curl_easy_setopt(curl, CURLOPT_DNS_LOCAL_IP4, "8.8.8.8");
+    curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_easy_setopt(curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &data_write);
     curl_easy_setopt(curl, CURLOPT_FILE, &os);

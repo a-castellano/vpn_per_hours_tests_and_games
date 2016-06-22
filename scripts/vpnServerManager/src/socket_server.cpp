@@ -177,8 +177,8 @@ bool processRequest(const std::string currentRequest) {
 						filename = filename + string("0");
 					}
 					filename = filename + to_string(ltm->tm_sec);
-					chap_secrets_filename = string("/home/azas/Proyects/vpnporhoras/ansible/files/secrets/") + filename;
-					inventory_filename = string("/home/azas/Proyects/vpnporhoras/ansible/inventories/") + filename;
+					chap_secrets_filename = string("/home/azas/Projects/vpnporhoras/ansible/files/secrets/") + filename;
+					inventory_filename = string("/home/azas/Projects/vpnporhoras/ansible/inventories/") + filename;
 
 					log = string("VPN USER PASSWORD FILE:") + chap_secrets_filename;
 					writeLog(logFile,log);
@@ -208,7 +208,7 @@ bool processRequest(const std::string currentRequest) {
 					}
 					usleep(50000000);
 					writeLog(logFile,string("Server Ready to deploy"));
-					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Proyects/vpnporhoras/ansible/pptp_setup.yml -i") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\" --key-file=/home/azas/Proyects/vpnporhoras/ssh_keys/id_rsa -e 'host_key_checking=False'");
+					ansibleCommand = string("/usr/bin/ansible-playbook /home/azas/Projects/vpnporhoras/ansible/pptp_setup.yml -i") + inventory_filename + string(" -e \"secrets_file=") + filename + string("\" --key-file=/home/azas/Projects/vpnporhoras/ssh_keys/id_rsa -e 'host_key_checking=False'");
 					writeLog(logFile,ansibleCommand);
 					std::system(ansibleCommand.c_str());
 
