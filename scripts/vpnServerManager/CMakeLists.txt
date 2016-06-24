@@ -18,9 +18,8 @@ INCLUDE_DIRECTORIES(lib/log)
 INCLUDE_DIRECTORIES(lib/server)
 INCLUDE_DIRECTORIES(lib/server_pointer)
 INCLUDE_DIRECTORIES(lib/ssh_tester)
+INCLUDE_DIRECTORIES(lib/manager_node) 
 
-
-MESSAGE( STATUS "CONAN_LIBS:         " ${CONAN_LIBS} )
 
 ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp )
 TARGET_LINK_LIBRARIES( main ${CONAN_LIBS})
@@ -62,7 +61,8 @@ ADD_EXECUTABLE( socket_test src/socket_server.cpp lib/server/Server.cpp lib/serv
   lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( socket_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
 
-
+ADD_EXECUTABLE( VPNManagerDaemon src/VPNManagerDeamon.cpp lib/manager_node/ManagerNode.cpp )
+TARGET_LINK_LIBRARIES( VPNManagerDaemon ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
 
 add_test(NAME server_request COMMAND ./bin/server_request_test )
