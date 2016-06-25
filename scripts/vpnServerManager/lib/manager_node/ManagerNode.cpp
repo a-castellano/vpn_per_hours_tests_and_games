@@ -5,6 +5,7 @@
 #include <string>
 #include <stdio.h>
 #include <boost/thread.hpp> 
+#include <boost/asio.hpp> 
 
 void RequestsQueue::Enqueue(const std::string &request)
 {
@@ -24,8 +25,65 @@ void RequestsQueue::Dequeue( std::string &data )
   r_queue.pop();
 }
 
-void requestManager(  )
-{
-  printf("Yo! I'm a thread.\n");
+std::string make_daytime_string() { 
+  time_t now = time(0);
+  return ctime(&now);
 }
 
+void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue )
+{
+  std::cout << "Yo! I'm the thread " << thread_id << std::endl;
+  std::string request;
+
+  for(;;) // I will be here forever
+  {
+    requestsQueue->Dequeue( request );
+    std::cout << "Greetings from thread " << thread_id << ". I've received this request: " << request << std::endl;
+    if( request == std::string( "__KILL_YOURSELF__" ) )
+    {
+      std::cout << "Trhead "<< thread_id << " ...Bye..." << std::endl;
+      break;
+    }
+  }
+}
+
+bool processRequests( const unsigned int &port,  const unsigned int &numthreads, RequestsQueue *requestsQueue)
+{
+  using boost::asio::ip::tcp;
+  try
+  {
+
+    std::stringstream ss;
+    std::string request;
+
+    boost::asio::io_service io_service;
+    tcp::endpoint endpoint(tcp::v4(), port);
+    tcp::acceptor acceptor(io_service, endpoint);
+
+    for(;;)
+    {
+      tcp::iostream stream;
+      acceptor.accept(*stream.rdbuf());
+      ss << stream.rdbuf();
+      request = ss.str();
+      stream << "ACK" << make_daytime_string();
+
+      if( request == std::string( "__KILL_YOURSELF__" ) )
+      {
+         for (unsigned int t=0 ; t < numthreads; t++) {
+            requestsQueue->Enqueue( request );
+         }
+         break;
+      }
+
+      requestsQueue->Enqueue( request );
+      ss.str("");
+    }
+
+  }
+  catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    return false;
+  }
+  return true;
+}

@@ -10,9 +10,9 @@
 
 #include <ManagerNode.h>
 
-using boost::asio::ip::tcp;
+//using boost::asio::ip::tcp;
 using namespace std;
-using namespace boost;
+//using namespace boost;
 
 // Global variables
 
@@ -31,11 +31,6 @@ bool legal_int(char *str)
   return true;
 }
 
-string make_daytime_string() {
-  time_t now = time(0);
-  return ctime(&now);
-}
-
 // Main function
 
 int main( int argc, char *argv[] ) // port number and numthreads 
@@ -51,22 +46,29 @@ int main( int argc, char *argv[] ) // port number and numthreads
     return 1;
   }
 
+  boost::thread manager;
+
   std::stringstream ss;
   unsigned int portnumber = atoi( argv[1] );
   unsigned int numthreads = atoi( argv[2] );
 
-  RequestsQueue *requestsQueue = new RequestsQueue();  
+  RequestsQueue *requestsQueue = new RequestsQueue();
 
   boost::thread_group threads;
 
-  for( int i = 0; i < numthreads ; i++ )
+  for( unsigned int i = 0; i < numthreads ; i++ )
   {
     cout<<i<<endl;
-    threads.add_thread( new boost::thread( requestManager, requestsQueue ) );
+    threads.add_thread( new boost::thread( requestManager, i, requestsQueue ) );
   }
+
+  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue );
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
+
+  manager.join();
+  threads.join_all();
 
 /*
 ithis will become another thread
