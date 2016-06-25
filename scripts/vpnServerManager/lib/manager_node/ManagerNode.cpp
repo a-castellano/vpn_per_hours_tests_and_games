@@ -6,6 +6,12 @@
 #include <stdio.h>
 #include <boost/thread.hpp> 
 #include <boost/asio.hpp> 
+#include <boost/log/trivial.hpp>
+
+#include <unistd.h> //usleep
+
+//VPN PROJECT LIBRARIES
+
 
 void RequestsQueue::Enqueue(const std::string &request)
 {
@@ -25,31 +31,43 @@ void RequestsQueue::Dequeue( std::string &data )
   r_queue.pop();
 }
 
+void CurlLock::getLock()
+{
+  c_mutex.lock(); 
+}
+
+void CurlLock::releaseLock()
+{
+  c_mutex.unlock();
+}
+
+void LogLock::getLock()
+{
+  l_mutex.lock();
+}
+
+void LogLock::releaseLock()
+{
+  l_mutex.unlock();
+}
+
 std::string make_daytime_string() { 
   time_t now = time(0);
   return ctime(&now);
 }
 
-void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue )
-{
-  std::cout << "Yo! I'm the thread " << thread_id << std::endl;
-  std::string request;
-
-  for(;;) // I will be here forever
-  {
-    requestsQueue->Dequeue( request );
-    std::cout << "Greetings from thread " << thread_id << ". I've received this request: " << request << std::endl;
-    if( request == std::string( "__KILL_YOURSELF__" ) )
-    {
-      std::cout << "Trhead "<< thread_id << " ...Bye..." << std::endl;
-      break;
-    }
-  }
-}
-
-bool processRequests( const unsigned int &port,  const unsigned int &numthreads, RequestsQueue *requestsQueue)
+bool processRequests( const unsigned int &port,  const unsigned int &numthreads, RequestsQueue *requestsQueue, const std::string &logFolder, LogLock *logLock )
 {
   using boost::asio::ip::tcp;
+
+  std::string logFile = logFolder + std::string("Proccesser.log");
+  std::string log("");
+  log = std::string("Proccesser started!");
+
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
   try
   {
 
@@ -67,9 +85,24 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       ss << stream.rdbuf();
       request = ss.str();
       stream << "ACK" << make_daytime_string();
+      log = std::string( "Request received: " ) + request;
+      
+      logLock->getLock();
+       writeLog(logFile, log);
+      logLock->releaseLock();
+
+ 
 
       if( request == std::string( "__KILL_YOURSELF__" ) )
       {
+         log = std::string("Sending killing to the managers."); 
+         
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+
          for (unsigned int t=0 ; t < numthreads; t++) {
             requestsQueue->Enqueue( request );
          }
@@ -83,7 +116,101 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   }
   catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
+    log = std::string("ERROR: ") + std::string(e.what());
+    
+     logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+ 
+
     return false;
   }
+  log = std::string("Proccesser finished.");
+  
+
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
   return true;
 }
+
+void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue, CurlLock * curlLock, const std::string &logFolder, LogLock *logLock )
+{
+
+  std::string request;
+
+  std::string logFile = logFolder + std::string("Manager_") + std::to_string(thread_id) +std::string(".log");
+  std::string log("");
+  std::cout<<logFile<<std::endl;
+  log = std::string( "Manager started." );
+
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+
+  
+
+  for(;;) // I will be here forever
+  {
+    requestsQueue->Dequeue( request );
+    log = std::string( "Request received -> " ) + request;
+    
+
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+
+    if( request == std::string( "__KILL_YOURSELF__" ) )
+    {
+      log = std::string( "Kill message received... R.I.P." );
+      
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+
+      break;
+    }
+    //The request hast to be processed
+    usleep(5000000);
+    curlLock->getLock();
+
+    log = std::string( "Processing the curl requests" );
+    
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+    
+    usleep(10000000);
+
+    log = std::string( "Curl request processed." );
+    
+  logLock->getLock();
+  writeLog(logFile, log);
+  logLock->releaseLock();
+
+
+
+    curlLock->releaseLock();
+    usleep(1000000);
+
+    log = std::string( "Request totally processed." );
+   
+    logLock->getLock();  
+    writeLog(logFile, log);
+      logLock->releaseLock();
+
+
+  }
+}
+
+

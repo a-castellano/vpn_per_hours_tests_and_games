@@ -53,16 +53,20 @@ int main( int argc, char *argv[] ) // port number and numthreads
   unsigned int numthreads = atoi( argv[2] );
 
   RequestsQueue *requestsQueue = new RequestsQueue();
+  CurlLock * curlLock = new CurlLock();
+  LogLock * logLock = new LogLock();
 
   boost::thread_group threads;
+
+  string logFolder= string("log/Manager_")+to_string(portnumber)+string("/");
 
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
     cout<<i<<endl;
-    threads.add_thread( new boost::thread( requestManager, i, requestsQueue ) );
+    threads.add_thread( new boost::thread( requestManager, i, requestsQueue, curlLock, logFolder, logLock ) );
   }
 
-  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue );
+  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue, logFolder, logLock );
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
@@ -70,28 +74,5 @@ int main( int argc, char *argv[] ) // port number and numthreads
   manager.join();
   threads.join_all();
 
-/*
-ithis will become another thread
-  try
-  {
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), atoi(argv[1]));
-    tcp::acceptor acceptor(io_service, endpoint);
-
-    for(;;)
-    {
-      tcp::iostream stream;
-      acceptor.accept(*stream.rdbuf());
-      ss << stream.rdbuf() ;
-      stream << "ACK" << make_daytime_string();
-      requestsQueue.Enqueue( ss.str() )
-      ss.str("");
-    }
-
-  }
-  catch (std::exception &e) {
-    std::cerr << e.what() << std::endl;
-  }
-  */
   return 0;
 }
