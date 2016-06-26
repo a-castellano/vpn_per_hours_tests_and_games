@@ -47,14 +47,16 @@ int main( int argc, char *argv[] ) // port number and numthreads
   }
 
   boost::thread manager;
+  boost::thread logger;
 
   std::stringstream ss;
   unsigned int portnumber = atoi( argv[1] );
   unsigned int numthreads = atoi( argv[2] );
 
   RequestsQueue *requestsQueue = new RequestsQueue();
+  LogQueue *logQueue = new LogQueue();
   CurlLock * curlLock = new CurlLock();
-  LogLock * logLock = new LogLock();
+//  LogLock * logLock = new LogLock();
 
   boost::thread_group threads;
 
@@ -63,16 +65,19 @@ int main( int argc, char *argv[] ) // port number and numthreads
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
     cout<<i<<endl;
-    threads.add_thread( new boost::thread( requestManager, i, requestsQueue, curlLock, logFolder, logLock ) );
+    threads.add_thread( new boost::thread( requestManager, i, requestsQueue, curlLock, logQueue ) );
   }
 
-  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue, logFolder, logLock );
+  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue, logQueue );
+
+  logger = boost::thread( logManager, logFolder, logQueue ); 
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
 
   manager.join();
   threads.join_all();
+  logger.join();
 
   return 0;
 }

@@ -62,7 +62,8 @@ ADD_EXECUTABLE( socket_test src/socket_server.cpp lib/server/Server.cpp lib/serv
   lib/ssh_tester/sshTester.cpp )
 TARGET_LINK_LIBRARIES( socket_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
 
-ADD_EXECUTABLE( VPNManagerDaemon src/VPNManagerDeamon.cpp lib/manager_node/ManagerNode.cpp lib/vpn_log/VPNLog.cpp )
+ADD_EXECUTABLE( VPNManagerDaemon src/VPNManagerDeamon.cpp lib/manager_node/ManagerNode.cpp lib/log/Log.cpp
+  lib/log/Logger.cpp )
 TARGET_LINK_LIBRARIES( VPNManagerDaemon ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT} )
 
 
