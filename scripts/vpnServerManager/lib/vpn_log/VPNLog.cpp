@@ -2,41 +2,51 @@
 // Álvaro Castellano Vela - 25/06/2016
 
 #include "VPNLog.h"
-#include <string>
-
 #include <iostream>
-#include <boost/move/utility.hpp>
-#include <boost/log/sources/logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <cstring>
-#include <stdlib.h>
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <ctime>
+#include <boost/algorithm/string.hpp>
 
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace keywords = boost::log::keywords;
-namespace sinks = boost::log::sinks;
-
-void Logger::write(const std::string & filename, const std::string & message)
+void writeLog( const std::string &logData )
 {
-  logging::add_file_log(
-      keywords::file_name = filename.c_str(),
-      keywords::rotation_size = 10 * 1024 * 1024,
-      keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
-      keywords::format = "[%TimeStamp%]: %Message%"
-      );
-  logging::add_common_attributes();
-  src::logger lg;
-  logging::record rec = lg.open_record();
-  if( rec )
-  {
-    logging::record_ostream strm(rec);
-    strm << message;
-    strm.flush();
-    lg.push_record(boost::move(rec));
-  }
+  using namespace boost;
+
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+
+  time (&rawtime);
+  timeinfo = localtime(&rawtime);
+
+  strftime(buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+  std::string str(buffer);
+
+  std::ofstream outfile;
+
+  std::string logFile;
+  std::string data;
+
+  std::cout << logData << std::endl;
+
+  typedef std::vector< std::string > split_vector_type;
+
+  split_vector_type SplitVec;
+  split_regex( SplitVec, logData, ("__-*-__"), token_compress_on );
+
+  logFile = SplitVec[0];
+  data = SplitVec[1];
+
+  std::cout << logFile << std::endl;
+  std::cout << data << std::endl;
+
+  outfile.open( logFile.c_str() , std::ios_base::app );
+  outfile << "[";
+  outfile << str;
+  outfile << "] - ";
+  outfile << data;
+  outfile << "\n";
+  outfile.close();
+
 }

@@ -10,7 +10,7 @@
 #include <unistd.h> //usleep
 
 //VPN PROJECT LIBRARIES
-#include <Logger.h>
+#include <VPNLog.h>
 
 void RequestsQueue::Enqueue(const std::string &request)
 {
@@ -37,7 +37,7 @@ void LogQueue::Enqueue(const std::string &loginfo)
   l_cond.notify_one();
 }
 
-void LogQueue::Dequeue( std::string &logFile, std::string &data)
+void LogQueue::Dequeue( std::string &data)
 {
   boost::unique_lock<boost::mutex> lock( l_mutex );
 
@@ -45,15 +45,9 @@ void LogQueue::Dequeue( std::string &logFile, std::string &data)
   {
     l_cond.wait(lock);
   }
-  logFile = l_queue.front();
-  l_queue.pop();
-
-  while ( l_queue.size() == 0 )
-  {
-    l_cond.wait(lock);
-  }
   data = l_queue.front();
   l_queue.pop();
+
 }
 
 
@@ -89,8 +83,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   std::string logFile("Proccesser.log");
   std::string log("");
   log = std::string("Proccesser started!");
-  logQueue->Enqueue(logFile);
-  logQueue->Enqueue(log);
+  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
  // logLock->getLock();
  // writeLog(logFile, log);
  // logLock->releaseLock();
@@ -119,8 +112,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       stream << "ACK" << make_daytime_string();
 
       log = std::string( "Request received: " ) + request;
-      logQueue->Enqueue(logFile);
-      logQueue->Enqueue(log); 
+      logQueue->Enqueue(  logFile + std::string("__-*-__") + log );
       //logLock->getLock();
       //logger->write(logFile, log);
       //logLock->releaseLock();
@@ -133,8 +125,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       if( request == std::string( "__KILL_YOURSELF__" ) )
       {
          log = std::string("Sending killing to the managers.");
-         logQueue->Enqueue(logFile); 
-         logQueue->Enqueue(log); 
+         logQueue->Enqueue( logFile + std::string("__-*-__") + log );
          //logLock->getLock();
          //logger->write(logFile, log);
          //logLock->releaseLock();
@@ -158,8 +149,8 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
     log = std::string("ERROR: ") + std::string(e.what());
-    logQueue->Enqueue(logFile);
-    logQueue->Enqueue(log);
+    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+    
 
     //logLock->getLock();
     //logger->write(logFile, log);
@@ -173,8 +164,8 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
     return false;
   }
   log = std::string("Proccesser finished.");
-  logQueue->Enqueue(logFile);
-  logQueue->Enqueue(log); 
+  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+  //logQueue->Enqueue(log); 
   //logLock->getLock();
   //logger->write(logFile,log);
   //logLock->releaseLock();
@@ -196,8 +187,8 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
   //logQueue->Enqueue(log);
 
   log = std::string( "Manager started." );
-  logQueue->Enqueue(logFile);
-  logQueue->Enqueue(log);
+  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+  //logQueue->Enqueue(log);
 
   //Logger * logger = new Logger( );
   //logger->init(logFile);
@@ -217,8 +208,8 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
     requestsQueue->Dequeue( request );
     log = std::string( "Request received -> " ) + request;
 
-    logQueue->Enqueue(logFile);
-    logQueue->Enqueue(log);
+    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+    //logQueue->Enqueue(log);
     //logLock->getLock();
     //logger->write(logFile, log);
     //logLock->releaseLock();
@@ -231,8 +222,8 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
     if( request == std::string( "__KILL_YOURSELF__" ) )
     {
       log = std::string( "Kill message received... R.I.P." );
-      logQueue->Enqueue(logFile);
-      logQueue->Enqueue(log);
+      logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+      //logQueue->Enqueue(log);
       //logLock->getLock();
       //logger->write(logFile, log);
       //logLock->releaseLock();
@@ -249,8 +240,7 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
     curlLock->getLock();
 
     log = std::string( "Processing the curl requests" );
-    logQueue->Enqueue(logFile);
-    logQueue->Enqueue(log);
+    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
     //logLock->getLock();
     //logger->write(logFile, log);
     //logLock->releaseLock();
@@ -265,8 +255,7 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
     curlLock->releaseLock(); 
 
     log = std::string( "Curl request processed." );
-    logQueue->Enqueue(logFile);
-    logQueue->Enqueue(log);
+    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
     //logLock->getLock();
     //logger->write(logFile, log);
     //logLock->releaseLock();
@@ -274,8 +263,8 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
     usleep(1000000);
 
     log = std::string( "Request totally processed." );
-    logQueue->Enqueue(logFile);
-    logQueue->Enqueue(log);
+    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+    
     //logLock->getLock();
     //logger->write(logFile, log);
     //logLock->releaseLock();
@@ -294,9 +283,9 @@ void logManager( const std::string &logFolder , LogQueue * logQueue )
 
     for(;;)
     {
-      logQueue->Dequeue( logFile, data );
+      logQueue->Dequeue( data );
       std::cout << "FILE: " << logFolder << logFile << std::endl;
       std::cout << "Data: " << data << std::endl;
-      writeLog( logFolder + logFile, data);
+      writeLog( logFolder + data);
     }
 }

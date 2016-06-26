@@ -7,10 +7,4 @@
 
 #include <string>
 
-
-
-class Logger
-{
-  public:
-    void write( const std::string &, const std::string & );
-};
+void writeLog( const std::string & );

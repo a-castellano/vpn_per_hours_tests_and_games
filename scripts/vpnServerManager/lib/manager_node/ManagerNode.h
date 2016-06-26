@@ -24,7 +24,7 @@ class RequestsQueue
 class LogQueue{
   public:
         void Enqueue( const std::string & );
-        void Dequeue( std::string & , std::string & );
+        void Dequeue( std::string & );
   private:
         std::queue<std::string> l_queue; //The queue which stores logs
         boost::mutex l_mutex;
