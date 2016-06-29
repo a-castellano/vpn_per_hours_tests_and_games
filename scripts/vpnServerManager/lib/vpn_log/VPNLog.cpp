@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <ctime>
 #include <boost/algorithm/string.hpp>
@@ -28,18 +29,23 @@ void writeLog( const std::string &logData )
   std::string logFile;
   std::string data;
 
-  std::cout << logData << std::endl;
+  std::vector<std::string> elems;
 
-  typedef std::vector< std::string > split_vector_type;
+  std::string delimiter = "__-*-__";
 
-  split_vector_type SplitVec;
-  split_regex( SplitVec, logData, ("__-*-__"), token_compress_on );
+  size_t pos = 0;
+  std::string processedlog(logData);
+  std::string token;
 
-  logFile = SplitVec[0];
-  data = SplitVec[1];
+  while ((pos = processedlog.find(delimiter)) != std::string::npos) {
+    token = processedlog.substr(0,pos);
+    elems.push_back(token);
+    processedlog.erase(0, pos + delimiter.length());
+  }
+  elems.push_back(processedlog);
 
-  std::cout << logFile << std::endl;
-  std::cout << data << std::endl;
+  logFile = elems[0];
+  data = elems [1];
 
   outfile.open( logFile.c_str() , std::ios_base::app );
   outfile << "[";

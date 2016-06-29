@@ -10,9 +10,7 @@
 
 #include <ManagerNode.h>
 
-//using boost::asio::ip::tcp;
 using namespace std;
-//using namespace boost;
 
 // Global variables
 
@@ -56,7 +54,6 @@ int main( int argc, char *argv[] ) // port number and numthreads
   RequestsQueue *requestsQueue = new RequestsQueue();
   LogQueue *logQueue = new LogQueue();
   CurlLock * curlLock = new CurlLock();
-//  LogLock * logLock = new LogLock();
 
   boost::thread_group threads;
 
@@ -64,7 +61,6 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
-    cout<<i<<endl;
     threads.add_thread( new boost::thread( requestManager, i, requestsQueue, curlLock, logQueue ) );
   }
 
@@ -77,7 +73,12 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   manager.join();
   threads.join_all();
+
+  logQueue->Enqueue("__KILL_YOURSELF__");
+
   logger.join();
+
+  cout << "End" << endl;
 
   return 0;
 }

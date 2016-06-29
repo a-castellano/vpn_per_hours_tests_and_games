@@ -40,17 +40,7 @@ class CurlLock
   private:
     boost::mutex c_mutex;
 };
-/*
-class LogLock
-{
-  public:
-    void getLock();
-    void releaseLock();
 
-  private:
-    boost::mutex l_mutex;
-};
-*/
 std::string make_daytime_string();
 
 bool processRequests(const unsigned int &, const unsigned int &, RequestsQueue *, LogQueue *);
