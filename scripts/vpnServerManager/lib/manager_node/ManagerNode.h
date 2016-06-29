@@ -9,27 +9,19 @@
 #include <queue>
 #include <boost/thread.hpp> 
 
-class RequestsQueue
+class VPNQueue
 {
   public:
     void Enqueue( const std::string & );
     void Dequeue( std::string & );
+    bool empty();
 
   private:
     std::queue<std::string> r_queue; //The queue which stores requests
-    boost::mutex r_mutex; 
+    boost::mutex r_mutex;
     boost::condition_variable r_cond;
 };
 
-class LogQueue{
-  public:
-        void Enqueue( const std::string & );
-        void Dequeue( std::string & );
-  private:
-        std::queue<std::string> l_queue; //The queue which stores logs
-        boost::mutex l_mutex;
-        boost::condition_variable l_cond;
-};
 
 class CurlLock
 {
@@ -43,7 +35,7 @@ class CurlLock
 
 std::string make_daytime_string();
 
-bool processRequests(const unsigned int &, const unsigned int &, RequestsQueue *, LogQueue *);
+bool processRequests(const unsigned int &, const unsigned int &, VPNQueue *, VPNQueue *);
 /* "processRequests" function opens one socket for receiving 
  * server requests from the distributor, when a request is received
  * it is validated and enqueued.
@@ -51,6 +43,6 @@ bool processRequests(const unsigned int &, const unsigned int &, RequestsQueue *
  * If the received request is "__KILL_YOURSELF__" the manager will send the same message
  * to all the requestsManagers wich will commit suicide
 */
-void requestManager( const unsigned int ,RequestsQueue *, CurlLock *, LogQueue *);
+void requestManager( const unsigned int ,VPNQueue *, CurlLock *, VPNQueue *);
 
-void logManager( const std::string &, LogQueue * );
+void logManager( const std::string &, VPNQueue * );

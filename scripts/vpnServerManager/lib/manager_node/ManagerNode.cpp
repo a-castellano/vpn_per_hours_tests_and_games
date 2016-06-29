@@ -17,43 +17,25 @@
 
 // Functions
 
-void RequestsQueue::Enqueue(const std::string &request)
+void VPNQueue::Enqueue(const std::string &request)
 {
   boost::unique_lock<boost::mutex> lock( r_mutex );
   r_queue.push( request );
   r_cond.notify_one();
 }
 
-void RequestsQueue::Dequeue( std::string &data )
+
+void VPNQueue::Dequeue( std::string &data )
 {
   boost::unique_lock<boost::mutex> lock( r_mutex );
-  while ( r_queue.size() == 0 )
+  while ( r_queue.empty()  )
   {
     r_cond.wait(lock);
   }
   data = r_queue.front();
-  r_queue.pop();
+  r_queue.pop(); 
 }
 
-void LogQueue::Enqueue(const std::string &loginfo)
-{
-  boost::unique_lock<boost::mutex> lock( l_mutex );
-  l_queue.push( loginfo );
-  l_cond.notify_one();
-}
-
-void LogQueue::Dequeue( std::string &data)
-{
-  boost::unique_lock<boost::mutex> lock( l_mutex );
-
-  while ( l_queue.size() == 0 )
-  {
-    l_cond.wait(lock);
-  }
-  data = l_queue.front();
-  l_queue.pop();
-
-}
 
 
 void CurlLock::getLock()
@@ -71,7 +53,7 @@ std::string make_daytime_string() {
   return ctime(&now);
 }
 
-bool processRequests( const unsigned int &port,  const unsigned int &numthreads, RequestsQueue *requestsQueue, LogQueue * logQueue/*, const std::string &logFolder, LogLock *logLock*/ )
+bool processRequests( const unsigned int &port,  const unsigned int &numthreads, VPNQueue *requestsQueue, VPNQueue * logQueue/*, const std::string &logFolder, LogLock *logLock*/ )
 {
   using boost::asio::ip::tcp;
 
@@ -136,7 +118,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   return true;
 }
 
-void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue, CurlLock * curlLock, LogQueue * logQueue )
+void requestManager( const unsigned int thread_id, VPNQueue *requestsQueue, CurlLock * curlLock, VPNQueue * logQueue )
 {
 
   std::string request;
@@ -183,7 +165,7 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
       break;
 
     }
-
+/*
     ServerRequest *serverRequest = new ServerRequest( request );
 
     if ( serverRequest->isCorrect() ) {
@@ -219,11 +201,12 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
           severName = db->setServerName(token, zone);
           log = std::string("Server Name: ") + severName;
           logQueue->Enqueue( logFile + std::string("__-*-__") + log );
-          free(db);
+          //free(db);
 
-          db = new DatabaseHandler(address, 3306, user, password, database);
+          //db = new DatabaseHandler(address, 3306, user, password, database);
           db->updateDBField(token, std::string("name"), std::string("string"), severName);
           db->updateDBField(token, std::string("name"), std::string("string"), severName);
+          free(db);
 
           db_zones = new DatabaseHandler(address, 3306, user, password, std::string("vpn_zones"));
           providers = db_zones->getProvidersFromZone(zone);
@@ -259,7 +242,7 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
 
           curlLock->getLock(); 
 
-          server->create();
+          //server->create();
 
           curlLock->releaseLock();
     
@@ -273,34 +256,25 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
 
 
 
+    }// if ( serverRequest->isCorrect() ) 
+    else{
+      free(serverRequest);
+      log = std::string("Server resquest incorrect.");
+      logQueue->Enqueue( logFile + std::string("__-*-__") + log );
     }
 
-    usleep(5000000);
-    curlLock->getLock();
-
-    log = std::string( "Processing the curl requests" );
-    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
-
-    usleep(10000000);
-
-    curlLock->releaseLock();
-
-    log = std::string( "Curl request processed." );
-    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
-
-    usleep(1000000);
-
+*/
     log = std::string( "Request totally processed." );
     logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
-  }
+  }//for
 }
 
-void logManager( const std::string &logFolder , LogQueue * logQueue )
+void logManager( const std::string &logFolder , VPNQueue * logQueue )
 {
     std::string logFile;
     std::string data;
-
+    
     for(;;)
     {
       logQueue->Dequeue( data );

@@ -52,8 +52,8 @@ int main( int argc, char *argv[] ) // port number and numthreads
   unsigned int portnumber = atoi( argv[1] );
   unsigned int numthreads = atoi( argv[2] );
 
-  RequestsQueue *requestsQueue = new RequestsQueue();
-  LogQueue *logQueue = new LogQueue();
+  VPNQueue *requestsQueue = new VPNQueue();
+  VPNQueue *logQueue = new VPNQueue();
   CurlLock * curlLock = new CurlLock();
 
   boost::thread_group threads;
