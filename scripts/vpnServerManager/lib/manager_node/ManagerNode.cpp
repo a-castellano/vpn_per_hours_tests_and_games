@@ -11,6 +11,11 @@
 
 //VPN PROJECT LIBRARIES
 #include <VPNLog.h>
+#include <ServerRequest.h>
+#include <DatabaseHandler.h>
+#include <ServerFactory.h>
+
+// Functions
 
 void RequestsQueue::Enqueue(const std::string &request)
 {
@@ -136,6 +141,26 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
 
   std::string request;
 
+  std::string command;
+  std::string token;
+
+
+  std::string address("paula.es.una.ninja");
+  std::string user("vpn");
+  std::string password("XLRc3H1y4Db0G4qR630Qk2xPF3D88P");
+  std::string database("vpn");
+
+  DatabaseHandler *db;
+  DatabaseHandler *db_zones;
+  unsigned int zone;
+  std::vector<std::string> providers;
+  std::string selectedProvider;
+  unsigned int providerRandomId;
+
+  std::string severName;
+
+  Server *server;
+
   std::string logFile = std::string("Manager_") + std::to_string(thread_id) +std::string(".log");
   std::string log("");
 
@@ -158,7 +183,98 @@ void requestManager( const unsigned int thread_id, RequestsQueue *requestsQueue,
       break;
 
     }
-    //The request hast to be processed
+
+    ServerRequest *serverRequest = new ServerRequest( request );
+
+    if ( serverRequest->isCorrect() ) {
+
+      command = serverRequest->getCommand();
+      token = serverRequest->getToken();
+
+      log = std::string("Commad: ") + command;
+      logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+      log = std::string("Token: ") + token;
+      logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+      free( serverRequest );
+
+      db = new DatabaseHandler(address, 3306, user, password, database);
+    
+      if (!db->dataIsWellFormed()) {
+        log = std::string("Error: Database data is incorrect.");
+        logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+        //Send some alert
+      }
+      else {
+        zone = db->getServerZoneFromToken(token);
+        if (db->hasError()) {
+          log = std::string("Error: getServerZoneFromToken.");
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+          free(db);
+        }
+        else {
+          log = std::string("Zone: ") + std::to_string(zone);
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+          severName = db->setServerName(token, zone);
+          log = std::string("Server Name: ") + severName;
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+          free(db);
+
+          db = new DatabaseHandler(address, 3306, user, password, database);
+          db->updateDBField(token, std::string("name"), std::string("string"), severName);
+          db->updateDBField(token, std::string("name"), std::string("string"), severName);
+
+          db_zones = new DatabaseHandler(address, 3306, user, password, std::string("vpn_zones"));
+          providers = db_zones->getProvidersFromZone(zone);
+
+          log = std::string("Providers: ");
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+          for (std::string provider : providers) {
+            logQueue->Enqueue( logFile + std::string("__-*-__") + provider );
+          }
+
+          if (providers.size() == 1) {
+            selectedProvider = providers[0];
+          }
+          else {
+            srand(time(NULL));
+            providerRandomId = rand() % (providers.size());
+            selectedProvider = providers[providerRandomId];
+          }
+
+          log = std::string("Selected provider: ") + selectedProvider;
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+          free(db_zones);
+
+          log = std::string("Creating server.");
+
+          server = CreateServer(selectedProvider, token);
+          server->setZone(zone);
+          server->setServerName(severName);
+          log = std::string("Server type: ") + server->serverType();
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+          curlLock->getLock(); 
+
+          server->create();
+
+          curlLock->releaseLock();
+    
+          log = std::string("Server created.");
+          logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+
+          free(server);
+
+        }
+      }
+
+
+
+    }
+
     usleep(5000000);
     curlLock->getLock();
 
