@@ -9,6 +9,17 @@
 #include <queue>
 #include <boost/thread.hpp> 
 
+
+class VPNLock
+{
+  public:
+    void getLock();
+    void releaseLock();
+
+  private:
+    boost::shared_mutex c_mutex;
+};
+
 class VPNQueue
 {
   public:
@@ -19,23 +30,13 @@ class VPNQueue
   private:
     std::queue<std::string> r_queue; //The queue which stores requests
     boost::mutex r_mutex;
-    boost::condition_variable r_cond;
 };
 
 
-class CurlLock
-{
-  public:
-    void getLock();
-    void releaseLock();
-
-  private:
-    boost::mutex c_mutex;
-};
 
 std::string make_daytime_string();
 
-bool processRequests(const unsigned int &, const unsigned int &, VPNQueue *, VPNQueue *);
+bool processRequests(const unsigned int &, const unsigned int &, /*VPNQueue *,*/ VPNQueue *);
 /* "processRequests" function opens one socket for receiving 
  * server requests from the distributor, when a request is received
  * it is validated and enqueued.
@@ -43,6 +44,6 @@ bool processRequests(const unsigned int &, const unsigned int &, VPNQueue *, VPN
  * If the received request is "__KILL_YOURSELF__" the manager will send the same message
  * to all the requestsManagers wich will commit suicide
 */
-void requestManager( const unsigned int ,VPNQueue *, CurlLock *, VPNQueue *);
+void requestManager( const unsigned int /*,VPNQueue **/, VPNLock *, VPNQueue *, VPNLock *);
 
-void logManager( const std::string &, VPNQueue * );
+void logManager( const std::string &, std::vector< VPNQueue *> & );

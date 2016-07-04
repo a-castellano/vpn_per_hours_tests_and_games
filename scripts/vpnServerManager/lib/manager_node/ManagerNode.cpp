@@ -3,6 +3,7 @@
 
 #include "ManagerNode.h"
 #include <string>
+#include <vector>
 #include <stdio.h>
 #include <boost/thread.hpp> 
 #include <boost/asio.hpp> 
@@ -15,35 +16,48 @@
 #include <DatabaseHandler.h>
 #include <ServerFactory.h>
 
+
+extern VPNQueue  requestsQueue;
+
 // Functions
 
 void VPNQueue::Enqueue(const std::string &request)
 {
-  boost::unique_lock<boost::mutex> lock( r_mutex );
-  r_queue.push( request );
-  r_cond.notify_one();
+  r_mutex.lock();
+  r_queue.push(request);
+  r_mutex.unlock();
 }
 
 
 void VPNQueue::Dequeue( std::string &data )
 {
-  boost::unique_lock<boost::mutex> lock( r_mutex );
+  r_mutex.lock();
   while ( r_queue.empty()  )
   {
-    r_cond.wait(lock);
+    r_mutex.unlock();
+    usleep(20000);
+    r_mutex.lock();
   }
   data = r_queue.front();
-  r_queue.pop(); 
+  r_queue.pop();
+  r_mutex.unlock();
 }
 
+bool VPNQueue::empty()
+{
+  bool is_empty;
+  r_mutex.lock();
+  is_empty = r_queue.empty();
+  r_mutex.unlock();
+  return is_empty;
+}
 
-
-void CurlLock::getLock()
+void VPNLock::getLock()
 {
   c_mutex.lock();
 }
 
-void CurlLock::releaseLock()
+void VPNLock::releaseLock()
 {
   c_mutex.unlock();
 }
@@ -53,14 +67,14 @@ std::string make_daytime_string() {
   return ctime(&now);
 }
 
-bool processRequests( const unsigned int &port,  const unsigned int &numthreads, VPNQueue *requestsQueue, VPNQueue * logQueue/*, const std::string &logFolder, LogLock *logLock*/ )
+bool processRequests( const unsigned int &port,  const unsigned int &numthreads/*, VPNQueue *requestsQueue*/, VPNQueue * logQueue/*, const std::string &logFolder, LogLock *logLock*/ )
 {
   using boost::asio::ip::tcp;
 
   std::string logFile("Proccesser.log");
   std::string log("");
   log = std::string("Proccesser started!");
-  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+  //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
   try
   {
@@ -72,13 +86,16 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
     tcp::endpoint endpoint(tcp::v4(), port);
     tcp::acceptor acceptor(io_service, endpoint);
 
+    //tcp::iostream stream;
+
     for(;;)
     {
-      tcp::iostream stream;
-      acceptor.accept(*stream.rdbuf());
-      ss << stream.rdbuf();
+      tcp::iostream *stream = new tcp::iostream;
+      acceptor.accept(*stream->rdbuf());
+      ss << stream->rdbuf();
       request = ss.str();
-      stream << "ACK" << make_daytime_string();
+      stream->close();
+      //stream << "ACK" << make_daytime_string();
 
       log = std::string( "Request received: " ) + request;
       logQueue->Enqueue(  logFile + std::string("__-*-__") + log );
@@ -86,19 +103,21 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       if( request == std::string( "__KILL_YOURSELF__" ) )
       {
          log = std::string("Sending killing to the managers.");
-         logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+         //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
          for (unsigned int t=0 ; t < numthreads; t++) {
-            requestsQueue->Enqueue( request );
+            //requestsQueue.Enqueue( request );
          }
          break;
       }
 
-      requestsQueue->Enqueue( request );
+      //requestsQueue.Enqueue( request );
       ss.str("");
 
       log = std::string( "Request enqueued." );
-      logQueue->Enqueue(  logFile + std::string("__-*-__") + log );
+      //logQueue->Enqueue(  logFile + std::string("__-*-__") + log );
+      
+      free(stream);
     }
 
   }
@@ -106,19 +125,19 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
 
     std::cerr << e.what() << std::endl;
     log = std::string("ERROR: ") + std::string(e.what());
-    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+    //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
     return false;
 
   }
 
   log = std::string("Proccesser finished.");
-  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+  //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
   return true;
 }
 
-void requestManager( const unsigned int thread_id, VPNQueue *requestsQueue, CurlLock * curlLock, VPNQueue * logQueue )
+void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, VPNLock * curlLock, VPNQueue * logQueue, VPNLock * requestLock )
 {
 
   std::string request;
@@ -147,20 +166,23 @@ void requestManager( const unsigned int thread_id, VPNQueue *requestsQueue, Curl
   std::string log("");
 
   log = std::string( "Manager ") + std::to_string( thread_id ) + std::string(" started." );
-  logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+  //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
   for(;;) // I will be here forever
   {
-    requestsQueue->Dequeue( request );
-    log = std::string( "Request received -> " ) + request;
 
-    logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+    //requestLock->getLock();
+    requestsQueue.Dequeue( request );
+    //requestLock->releaseLock();
+
+    log = std::string( "Request received -> " ) + request;
+    //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
 
     if( request == std::string( "__KILL_YOURSELF__" ) )
     {
       log = std::string( "Kill message received... R.I.P." );
-      logQueue->Enqueue( logFile + std::string("__-*-__") + log );
+      //logQueue->Enqueue( logFile + std::string("__-*-__") + log );
 
       break;
 
@@ -270,22 +292,43 @@ void requestManager( const unsigned int thread_id, VPNQueue *requestsQueue, Curl
   }//for
 }
 
-void logManager( const std::string &logFolder , VPNQueue * logQueue )
+void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
 {
     std::string logFile;
     std::string data;
-    
-    for(;;)
-    {
-      logQueue->Dequeue( data );
+    VPNQueue * logQueue;
+    unsigned int killed_queues;
+    unsigned int queue_size = logQueues.size();
 
-      if( data != std::string( "__KILL_YOURSELF__" ) )
+    while( killed_queues != queue_size )//size = n trhead managers + one producer
+    {
+      for( unsigned int i = 0 ; i < logQueues.size() ; i++)
       {
-        writeLog( logFolder + data);
+        logQueue = logQueues[i];
+        if( ! logQueue->empty() )
+        {
+          logQueue->Dequeue( data );
+          if( data != std::string( "__KILL_YOURSELF__" ) )
+          {
+            writeLog( logFolder + data);
+          }
+          else
+          {
+            killed_queues ++;
+          }
+        }
       }
-      else
-      {
-        break;
-      }
+      usleep(100000);
+
+      //logQueue->Dequeue( data );
+
+      //if( data != std::string( "__KILL_YOURSELF__" ) )
+      //{
+      //  writeLog( logFolder + data);
+      //}
+      //else
+      //{
+      //  break;
+      //}
     }
 }

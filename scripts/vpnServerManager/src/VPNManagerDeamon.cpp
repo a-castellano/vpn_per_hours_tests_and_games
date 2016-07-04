@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -15,6 +16,7 @@ using namespace std;
 
 // Global variables
 
+VPNQueue requestsQueue;
 
 // Support Functions
 
@@ -52,9 +54,13 @@ int main( int argc, char *argv[] ) // port number and numthreads
   unsigned int portnumber = atoi( argv[1] );
   unsigned int numthreads = atoi( argv[2] );
 
-  VPNQueue *requestsQueue = new VPNQueue();
-  VPNQueue *logQueue = new VPNQueue();
-  CurlLock * curlLock = new CurlLock();
+  //VPNQueue *requestsQueue = new VPNQueue();
+
+  VPNLock * curlLock = new VPNLock();
+  VPNLock * requestLock = new VPNLock(); 
+
+  VPNQueue *logQueue;// = new VPNQueue();
+  vector<VPNQueue *> logQueues;
 
   boost::thread_group threads;
 
@@ -62,12 +68,16 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
-    threads.add_thread( new boost::thread( requestManager, i, requestsQueue, curlLock, logQueue ) );
+    logQueue = new VPNQueue();
+    threads.add_thread( new boost::thread( requestManager, i/*, requestsQueue*/, curlLock, logQueue, requestLock ) );
+    logQueues.push_back( logQueue );
   }
 
-  manager = boost::thread( processRequests, portnumber, numthreads, requestsQueue, logQueue );
+  logQueue = new VPNQueue();
+  manager = boost::thread( processRequests, portnumber, numthreads/*, requestsQueue*/, logQueue );
+  logQueues.push_back( logQueue ); 
 
-  logger = boost::thread( logManager, logFolder, logQueue ); 
+  logger = boost::thread( logManager, logFolder, logQueues ); 
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
@@ -78,6 +88,11 @@ int main( int argc, char *argv[] ) // port number and numthreads
   logQueue->Enqueue("__KILL_YOURSELF__");
 
   logger.join();
+
+  for( unsigned int i = 0; i < logQueues.size() ; i++ )
+  {
+    free( logQueues[i] );
+  }
 
   cout << "End" << endl;
 
