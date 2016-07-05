@@ -7,8 +7,7 @@
 
 #include <string>
 #include <queue>
-#include <boost/thread.hpp> 
-
+#include <boost/thread.hpp>
 
 class VPNLock
 {
@@ -23,12 +22,12 @@ class VPNLock
 class VPNQueue
 {
   public:
-    void Enqueue( const std::string & );
+    void Enqueue( const std::string );
     void Dequeue( std::string & );
     bool empty();
 
   private:
-    std::queue<std::string> r_queue; //The queue which stores requests
+    std::queue<std::string>  r_queue; //The queue which stores requests
     boost::mutex r_mutex;
 };
 

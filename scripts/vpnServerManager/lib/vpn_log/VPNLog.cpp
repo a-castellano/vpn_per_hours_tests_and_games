@@ -10,7 +10,7 @@
 #include <ctime>
 #include <boost/algorithm/string.hpp>
 
-void writeLog( const std::string &logData )
+bool writeLog(  std::string logData )
 {
   using namespace boost;
 
@@ -40,12 +40,15 @@ void writeLog( const std::string &logData )
   while ((pos = processedlog.find(delimiter)) != std::string::npos) {
     token = processedlog.substr(0,pos);
     elems.push_back(token);
+    token.clear();
     processedlog.erase(0, pos + delimiter.length());
   }
   elems.push_back(processedlog);
 
   logFile = elems[0];
   data = elems [1];
+
+  elems.clear();
 
   outfile.open( logFile.c_str() , std::ios_base::app );
   outfile << "[";
@@ -54,5 +57,9 @@ void writeLog( const std::string &logData )
   outfile << data;
   outfile << "\n";
   outfile.close();
+  data.clear();
+  logFile.clear();
+  logData.clear();
 
+  return true;
 }

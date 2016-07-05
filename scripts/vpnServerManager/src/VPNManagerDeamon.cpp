@@ -66,6 +66,8 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   string logFolder= string("log/Manager_")+to_string(portnumber)+string("/");
 
+  string killMsg;
+
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
     logQueue = new VPNQueue();
@@ -85,7 +87,9 @@ int main( int argc, char *argv[] ) // port number and numthreads
   manager.join();
   threads.join_all();
 
-  logQueue->Enqueue("__KILL_YOURSELF__");
+  killMsg = string("__KILL_YOURSELF__");
+  logQueue->Enqueue(killMsg);
+  killMsg.clear();
 
   logger.join();
 

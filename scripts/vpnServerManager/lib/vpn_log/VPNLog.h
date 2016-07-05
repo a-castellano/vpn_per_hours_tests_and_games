@@ -7,4 +7,4 @@
 
 #include <string>
 
-void writeLog( const std::string & );
+bool writeLog( std::string );
