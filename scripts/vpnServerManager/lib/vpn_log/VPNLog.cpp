@@ -8,11 +8,9 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
-#include <boost/algorithm/string.hpp>
 
-bool writeLog(  std::string logData )
+bool writeLog(  std::string logPath,  std::string &log )
 {
-  using namespace boost;
 
   time_t rawtime;
   struct tm * timeinfo;
@@ -26,40 +24,15 @@ bool writeLog(  std::string logData )
 
   std::ofstream outfile;
 
-  std::string logFile;
-  std::string data;
-
-  std::vector<std::string> elems;
-
-  std::string delimiter = "__-*-__";
-
-  size_t pos = 0;
-  std::string processedlog(logData);
-  std::string token;
-
-  while ((pos = processedlog.find(delimiter)) != std::string::npos) {
-    token = processedlog.substr(0,pos);
-    elems.push_back(token);
-    token.clear();
-    processedlog.erase(0, pos + delimiter.length());
-  }
-  elems.push_back(processedlog);
-
-  logFile = elems[0];
-  data = elems [1];
-
-  elems.clear();
-
-  outfile.open( logFile.c_str() , std::ios_base::app );
+  outfile.open( logPath , std::ios_base::app );
   outfile << "[";
   outfile << str;
   outfile << "] - ";
-  outfile << data;
+  outfile << log;
   outfile << "\n";
-  outfile.close();
-  data.clear();
-  logFile.clear();
-  logData.clear();
+  str.clear();
+  logPath.clear();
+  log.clear();
 
   return true;
 }
