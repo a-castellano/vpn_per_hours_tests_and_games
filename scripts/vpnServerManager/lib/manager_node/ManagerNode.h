@@ -22,7 +22,7 @@ class VPNLock
 class VPNQueue
 {
   public:
-    void Enqueue( const std::string );
+    void Enqueue(  std::string );
     void Dequeue( std::string & );
     bool empty();
 

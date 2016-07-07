@@ -9,7 +9,7 @@
 #include <vector>
 #include <ctime>
 
-bool writeLog(  std::string logPath,  std::string &log )
+bool writeLog(  std::string logPath,  std::string log )
 {
 
   time_t rawtime;

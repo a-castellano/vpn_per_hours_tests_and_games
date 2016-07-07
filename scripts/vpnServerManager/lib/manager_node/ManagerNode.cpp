@@ -22,7 +22,7 @@ extern VPNQueue  requestsQueue;
 
 // Functions
 
-void VPNQueue::Enqueue(const std::string request)
+void VPNQueue::Enqueue(std::string request)
 {
   r_mutex.lock();
   r_queue.push(request);
@@ -36,6 +36,7 @@ void VPNQueue::Dequeue( std::string &data )
   while ( r_queue.empty()  )
   {
     r_mutex.unlock();
+    usleep(2000);
     r_mutex.lock();
   }
   data = r_queue.front();
@@ -93,7 +94,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
     tcp::iostream stream;
 
     std::string message("ACK");
-
+    std::string enqueued("Request enqueued.");
     boost::system::error_code ignored_error;
 
     for(;;)
@@ -101,7 +102,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
 
       acceptor.accept(*stream.rdbuf());
       ss << stream.rdbuf();
-      request = std::string( ss.str() ) ;
+      request =  ss.str()  ;
       boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
       stream.close();
 
@@ -127,10 +128,10 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
       ss.str("");
       request.clear();
 
-      log = std::string( "Request enqueued." );
+      //log = std::string( "Request enqueued." );
       logQueue->Enqueue( logFile );
-      logQueue->Enqueue( log );
-      log.clear();
+      logQueue->Enqueue( std::string( "Request enqueued." ) );
+      //log.clear();
     }
 
   }
@@ -145,10 +146,10 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
 
   }
 
-  log = std::string("Proccesser finished.");
+  //log = std::string("Proccesser finished.");
   logQueue->Enqueue( logFile );
-  logQueue->Enqueue( log );
-  log.clear();
+  logQueue->Enqueue( enqueued );
+  //log.clear();
 
   //The only time we enqueue one unique item
   logQueue->Enqueue( kill_yourself );
@@ -182,6 +183,7 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
   unsigned int providerRandomId;
 
   std::string severName;
+  std::string kill_yourself( "__KILL_YOURSELF__" );
 
   Server *server;
 
@@ -204,7 +206,7 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
     log.clear();
 
 
-    if( request == std::string( "__KILL_YOURSELF__" ) )
+    if( request == kill_yourself )
     {
       log = std::string( "Kill message received... R.I.P." );
       logQueue->Enqueue( logFile );
@@ -313,11 +315,11 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
 */
     usleep( (rand() % 10 + 1) * 100000 );
-    log = std::string("Request totally processed.");
+    //log = std::string("Request totally processed.");
     logQueue->Enqueue( logFile );
-    logQueue->Enqueue( log );
+    logQueue->Enqueue( std::string("Request totally processed.") );
     request.clear();
-    log.clear();
+    //log.clear();
   }//for
 }
 
@@ -345,8 +347,8 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
             logPath = logFolder + logFile ;
             logQueue->Dequeue( log );
             writeLog( logPath , log );
-            //log.clear();
-            //logPath.clear();
+            log.clear();
+            logPath.clear();
           }
           else
           {
