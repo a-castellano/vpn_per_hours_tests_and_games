@@ -3,6 +3,7 @@
 
 #include "ManagerNode.h"
 #include <string>
+#include <iostream>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,6 +78,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   std::string *logFile = new std::string("Proccesser.log");
   std::string *log = NULL;
   std::string *kill_yourself = new std::string("__KILL_YOURSELF__");
+  log = NULL;
   log = new std::string("Proccesser started!");
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
@@ -85,6 +87,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   {
 
     std::stringstream ss;
+    
     std::string *request;
 
     boost::asio::io_service io_service;
@@ -104,10 +107,12 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
 
       acceptor.accept(*stream.rdbuf());
       ss << stream.rdbuf();
+      stream.flush();
       request = new std::string( ss.str() );
       boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
       stream.close();
 
+      log = NULL;
       log = new std::string( *received + *request );
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
@@ -140,6 +145,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   catch (std::exception &e) {
 
     std::cerr << e.what() << std::endl;
+    log = NULL;
     log = new std::string("ERROR: "  + std::string(e.what()));
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
@@ -147,6 +153,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
 
   }
 
+  log = NULL;
   log = new std::string("Proccesser finished.");
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
@@ -156,7 +163,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   logQueue->Enqueue( kill_yourself );
 
 
-  free(logFile);
+  delete(logFile);
   //free(kill_yourself);
 
   return true;
@@ -185,6 +192,8 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
   std::string severName;
   std::string *kill_yourself = new std::string( "__KILL_YOURSELF__" );
+  std::string processed("Request totally processed.");
+  std::string received( "Request reveived -> " );
 
   Server *server;
 
@@ -193,6 +202,7 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
   logFile = new std::string(std::string("Manager_") + std::to_string(thread_id) +std::string(".log") );
 
+  log = NULL;
   log = new std::string( std::string( "Manager ") + std::to_string( thread_id ) + std::string(" started." ) );
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
@@ -202,13 +212,15 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
     request = requestsQueue.Dequeue( );
 
-    log = new std::string( "Request reveived -> " + *request );
+    log = NULL;
+    log = new std::string( received + *request );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
 
 
     if( *request == *kill_yourself )
     {
+      log = NULL;
       log = new std::string( "Kill message received... R.I.P." );
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
@@ -316,12 +328,13 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
 */
     usleep( (rand() % 10 + 1) * 100000 );
-    log = new std::string("Request totally processed.");
+    log = NULL;
+    log = new std::string( processed );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
 
   }//for
-  free( logFile );
+  delete( logFile );
 }
 
 void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
@@ -354,12 +367,12 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
           else
           {
             killed_queues ++;
-            free(logFile);
+            delete(logFile);
           }
         }
       }
       usleep(100000);
 
     }
-    free( kill_yourself );
+    delete( kill_yourself );
 }

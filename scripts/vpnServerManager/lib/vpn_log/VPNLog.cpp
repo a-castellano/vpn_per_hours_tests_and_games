@@ -31,7 +31,7 @@ bool writeLog(  std::string * &logPath,  std::string * &log )
   outfile << *log;
   outfile << "\n";
   str.clear();
-  free( logPath );
-  free( log );
+  delete( logPath );
+  delete( log );
   return true;
 }
