@@ -9,7 +9,7 @@
 #include <vector>
 #include <ctime>
 
-bool writeLog(  std::string logPath,  std::string log )
+bool writeLog(  std::string * &logPath,  std::string * &log )
 {
 
   time_t rawtime;
@@ -24,15 +24,14 @@ bool writeLog(  std::string logPath,  std::string log )
 
   std::ofstream outfile;
 
-  outfile.open( logPath , std::ios_base::app );
+  outfile.open( *logPath , std::ios_base::app );
   outfile << "[";
   outfile << str;
   outfile << "] - ";
-  outfile << log;
+  outfile << *log;
   outfile << "\n";
   str.clear();
-  logPath.clear();
-  log.clear();
-
+  free( logPath );
+  free( log );
   return true;
 }

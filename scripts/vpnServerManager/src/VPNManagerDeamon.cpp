@@ -66,7 +66,7 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   string logFolder= string("log/Manager_")+to_string(portnumber)+string("/");
 
-  string killMsg;
+  string *killMsg;
 
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
@@ -87,9 +87,9 @@ int main( int argc, char *argv[] ) // port number and numthreads
   manager.join();
   threads.join_all();
 
-  killMsg = string("__KILL_YOURSELF__");
+  killMsg = new string("__KILL_YOURSELF__");
   logQueue->Enqueue(killMsg);
-  killMsg.clear();
+  //killMsg.clear();
 
   logger.join();
 

@@ -22,12 +22,12 @@ class VPNLock
 class VPNQueue
 {
   public:
-    void Enqueue(  std::string );
-    void Dequeue( std::string & );
+    void Enqueue( std::string * );
+    std::string * Dequeue( );
     bool empty();
 
   private:
-    std::queue<std::string>  r_queue; //The queue which stores requests
+    std::queue<std::string *>  r_queue; //The queue which stores requests
     boost::mutex r_mutex;
 };
 
