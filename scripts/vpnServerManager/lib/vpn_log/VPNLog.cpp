@@ -9,7 +9,7 @@
 #include <vector>
 #include <ctime>
 
-bool writeLog(  std::string * &logPath,  std::string * &log )
+bool writeLog(  std::string * logPath,  std::string * log )
 {
 
   time_t rawtime;
@@ -30,8 +30,10 @@ bool writeLog(  std::string * &logPath,  std::string * &log )
   outfile << "] - ";
   outfile << *log;
   outfile << "\n";
+
   str.clear();
   delete( logPath );
   delete( log );
+  delete( timeinfo );
   return true;
 }

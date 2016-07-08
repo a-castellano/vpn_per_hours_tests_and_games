@@ -71,15 +71,18 @@ std::string make_daytime_string() {
   return ctime(&now);
 }
 
-bool processRequests( const unsigned int &port,  const unsigned int &numthreads/*, VPNQueue *requestsQueue*/, VPNQueue * logQueue/*, const std::string &logFolder, LogLock *logLock*/ )
+bool processRequests( const unsigned int &port,  const unsigned int &numthreads, VPNQueue * logQueue )
 {
   using boost::asio::ip::tcp;
 
-  std::string *logFile = new std::string("Proccesser.log");
-  std::string *log = NULL;
-  std::string *kill_yourself = new std::string("__KILL_YOURSELF__");
-  log = NULL;
+  std::string *logFile;
+  std::string *log;
+  std::string noPointerLogFile("Proccesser.log");
+  std::string kill_yourself("__KILL_YOURSELF__");
+
   log = new std::string("Proccesser started!");
+  logFile = new std::string(noPointerLogFile);
+
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
 
@@ -87,8 +90,10 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   {
 
     std::stringstream ss;
-    
     std::string *request;
+
+    std::string message("ACK");
+    std::string received("Request received: ");
 
     boost::asio::io_service io_service;
     tcp::endpoint endpoint(tcp::v4(), port);
@@ -97,9 +102,6 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
     tcp::socket socket(io_service);
     tcp::iostream stream;
 
-    std::string message("ACK");
-    std::string *received = new std::string("Request received: ");
-    std::string *enqueued;
     boost::system::error_code ignored_error;
 
     for(;;)
@@ -108,43 +110,55 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
       acceptor.accept(*stream.rdbuf());
       ss << stream.rdbuf();
       stream.flush();
+      request = NULL;
       request = new std::string( ss.str() );
       boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
       stream.close();
 
+      logFile = NULL;
+      logFile = new std::string(noPointerLogFile);
       log = NULL;
-      log = new std::string( *received + *request );
+      log = new std::string( received + *request );
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
 
-      if( *request == *kill_yourself )
+      if( *request == kill_yourself )
       {
+         logFile = NULL;
+         logFile = new std::string(noPointerLogFile);
+         log = NULL;
          log = new std::string("Sending killing to the managers.");
          logQueue->Enqueue( logFile );
          logQueue->Enqueue( log );
 
+         delete(request);
+
          for (unsigned int t=0 ; t < numthreads; t++) {
+            request = NULL;
+            request = new std::string( kill_yourself );
             requestsQueue.Enqueue( request );
          }
          break;
       }
-
-      requestsQueue.Enqueue( request );
+      else
+      {
+        requestsQueue.Enqueue( request );
+      }
       ss.clear();
-      ss.str("");
-
-      //log = std::string( "Request enqueued." ); 
+      //ss.str("");
+      logFile = NULL;
+      logFile = new std::string(noPointerLogFile);
       logQueue->Enqueue( logFile );
-      enqueued = NULL;
-      enqueued = new std::string("Request enqueued.");
-      logQueue->Enqueue( enqueued );
-      //log.clear();
-    }
+      log = NULL;
+      log = new std::string("Request enqueued.");
+      logQueue->Enqueue( log );
+    }//for
 
   }
   catch (std::exception &e) {
 
-    std::cerr << e.what() << std::endl;
+    logFile = NULL;
+    logFile = new std::string(noPointerLogFile);
     log = NULL;
     log = new std::string("ERROR: "  + std::string(e.what()));
     logQueue->Enqueue( logFile );
@@ -153,6 +167,8 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
 
   }
 
+  logFile = NULL;
+  logFile = new std::string(noPointerLogFile);
   log = NULL;
   log = new std::string("Proccesser finished.");
   logQueue->Enqueue( logFile );
@@ -160,16 +176,15 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads/
   //log.clear();
 
   //The only time we enqueue one unique item
-  logQueue->Enqueue( kill_yourself );
-
-
-  delete(logFile);
-  //free(kill_yourself);
+  
+  logFile = NULL;
+  logFile = new std::string( kill_yourself );
+  logQueue->Enqueue( logFile );
 
   return true;
 }
 
-void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, VPNLock * curlLock, VPNQueue * logQueue, VPNLock * requestLock )
+void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue * logQueue, VPNLock * requestLock )
 {
 
   std::string *request;
@@ -194,14 +209,15 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
   std::string *kill_yourself = new std::string( "__KILL_YOURSELF__" );
   std::string processed("Request totally processed.");
   std::string received( "Request reveived -> " );
+  std::string noPointerLogFile = std::string("Manager_") + std::to_string(thread_id) +std::string(".log");
 
   Server *server;
 
   std::string *logFile;
   std::string *log;
 
-  logFile = new std::string(std::string("Manager_") + std::to_string(thread_id) +std::string(".log") );
-
+  logFile = NULL;
+  logFile = new std::string(noPointerLogFile);
   log = NULL;
   log = new std::string( std::string( "Manager ") + std::to_string( thread_id ) + std::string(" started." ) );
   logQueue->Enqueue( logFile );
@@ -211,7 +227,9 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
   {
 
     request = requestsQueue.Dequeue( );
-
+    
+    logFile = NULL;
+    logFile = new std::string(noPointerLogFile);
     log = NULL;
     log = new std::string( received + *request );
     logQueue->Enqueue( logFile );
@@ -220,6 +238,8 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
     if( *request == *kill_yourself )
     {
+      logFile = NULL;
+      logFile = new std::string(noPointerLogFile);
       log = NULL;
       log = new std::string( "Kill message received... R.I.P." );
       logQueue->Enqueue( logFile );
@@ -228,6 +248,8 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
       break;
 
     }
+
+    //Process the request
 /*
     ServerRequest *serverRequest = new ServerRequest( request );
 
@@ -328,13 +350,16 @@ void requestManager( const unsigned int thread_id/*, VPNQueue *requestsQueue*/, 
 
 */
     usleep( (rand() % 10 + 1) * 100000 );
+    logFile = NULL;
+    logFile = new std::string(noPointerLogFile);
     log = NULL;
     log = new std::string( processed );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
 
+    delete(request);
+
   }//for
-  delete( logFile );
 }
 
 void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
@@ -342,7 +367,7 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
     std::string *logFile;
     std::string *logPath;
     std::string *log;
-    std::string *kill_yourself = new std::string( "__KILL_YOURSELF__" );
+    std::string kill_yourself( "__KILL_YOURSELF__" );
 
     VPNQueue * logQueue;
 
@@ -358,21 +383,22 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
         if( ! logQueue->empty() )
         {
           logFile = logQueue->Dequeue( );
-          if( *logFile != *kill_yourself )
+          if( *logFile != kill_yourself )
           {
+            logPath = NULL;
             logPath = new std::string( logFolder + *logFile );
+            log = NULL;
             log = logQueue->Dequeue( );
             writeLog( logPath , log );
           }
           else
           {
             killed_queues ++;
-            delete(logFile);
           }
+          delete(logFile);
         }
       }
       usleep(100000);
 
     }
-    delete( kill_yourself );
 }

@@ -7,5 +7,5 @@
 
 #include <string>
 
-bool writeLog( std::string *&, std::string *& );
+bool writeLog( std::string *, std::string * );
 
