@@ -34,6 +34,5 @@ bool writeLog(  std::string * logPath,  std::string * log )
   str.clear();
   delete( logPath );
   delete( log );
-  delete( timeinfo );
   return true;
 }

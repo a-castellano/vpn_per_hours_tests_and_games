@@ -71,19 +71,18 @@ int main( int argc, char *argv[] ) // port number and numthreads
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
     logQueue = new VPNQueue();
-    threads.add_thread( new boost::thread( requestManager, i/*, requestsQueue*/, curlLock, logQueue, requestLock ) );
+    threads.add_thread( new boost::thread( requestManager, i, curlLock, logQueue, requestLock ) );
     logQueues.push_back( logQueue );
   }
 
   logQueue = new VPNQueue();
-  manager = boost::thread( processRequests, portnumber, numthreads/*, requestsQueue*/, logQueue );
+  manager = boost::thread( processRequests, portnumber, numthreads, logQueue );
   logQueues.push_back( logQueue ); 
 
   logger = boost::thread( logManager, logFolder, logQueues ); 
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
-
   manager.join();
   threads.join_all();
 

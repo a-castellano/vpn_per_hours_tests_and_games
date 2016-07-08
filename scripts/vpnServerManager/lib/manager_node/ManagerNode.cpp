@@ -104,6 +104,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
 
     boost::system::error_code ignored_error;
 
+
     for(;;)
     {
 
@@ -144,8 +145,10 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       {
         requestsQueue.Enqueue( request );
       }
-      ss.clear();
-      //ss.str("");
+
+      ss.clear();// NOT USED
+      ss.str("");
+
       logFile = NULL;
       logFile = new std::string(noPointerLogFile);
       logQueue->Enqueue( logFile );
@@ -227,7 +230,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
   {
 
     request = requestsQueue.Dequeue( );
-    
+
     logFile = NULL;
     logFile = new std::string(noPointerLogFile);
     log = NULL;
@@ -349,7 +352,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
     }
 
 */
-    usleep( (rand() % 10 + 1) * 100000 );
+    usleep( (rand() % 10 + 1) * 10000 );
     logFile = NULL;
     logFile = new std::string(noPointerLogFile);
     log = NULL;
