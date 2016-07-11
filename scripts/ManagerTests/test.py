@@ -8,7 +8,7 @@ from time import sleep
 #s.close()
 
 
-for i in range(5000):
+for i in range(4000):
     s = socket.socket()
     s.connect(("localhost", 8085))
     s.send( "YOLO "+str(i) )
@@ -21,9 +21,7 @@ for i in range(5000):
 #s.send( "create/KySQUUylQ0WsAjApHtgrwU3HLb0fiFQAEOm4tGIt5KoHZwMYRYyjfDJAA33q" )
 #print( "SENDING create/KySQUUylQ0WsAjApHtgrwU3HLb0fiFQAEOm4tGIt5KoHZwMYRYyjfDJAA33q" )
 #s.close()
-'''
 s = socket.socket()
 s.connect(("localhost", 8085))
 s.send( "__KILL_YOURSELF__" )
 s.close()
-'''

@@ -86,8 +86,6 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
 
-  try
-  {
 
     std::stringstream ss;
     std::string *request;
@@ -104,6 +102,8 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
 
     boost::system::error_code ignored_error;
 
+  try
+  {
 
     for(;;)
     {
@@ -113,7 +113,7 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
       stream.flush();
       request = NULL;
       request = new std::string( ss.str() );
-      boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
+      //boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
       stream.close();
 
       logFile = NULL;
@@ -184,6 +184,16 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   logFile = new std::string( kill_yourself );
   logQueue->Enqueue( logFile );
 
+
+  stream.flush();
+  stream.close();
+  socket.close();
+  io_service.stop();
+  acceptor.close();
+
+  noPointerLogFile.clear();
+  kill_yourself.clear();
+
   return true;
 }
 
@@ -209,7 +219,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
   unsigned int providerRandomId;
 
   std::string severName;
-  std::string *kill_yourself = new std::string( "__KILL_YOURSELF__" );
+  std::string kill_yourself( "__KILL_YOURSELF__" );
   std::string processed("Request totally processed.");
   std::string received( "Request reveived -> " );
   std::string noPointerLogFile = std::string("Manager_") + std::to_string(thread_id) +std::string(".log");
@@ -228,7 +238,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
 
   for(;;) // I will be here forever
   {
-
+    request = NULL;
     request = requestsQueue.Dequeue( );
 
     logFile = NULL;
@@ -239,7 +249,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
     logQueue->Enqueue( log );
 
 
-    if( *request == *kill_yourself )
+    if( *request == kill_yourself )
     {
       logFile = NULL;
       logFile = new std::string(noPointerLogFile);
@@ -247,7 +257,10 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
       log = new std::string( "Kill message received... R.I.P." );
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
-
+      logFile = NULL;
+      logFile = new std::string(kill_yourself);
+      logQueue->Enqueue( logFile );
+      //delete( request );
       break;
 
     }
@@ -363,6 +376,7 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
     delete(request);
 
   }//for
+  std::cout << "Manager dead" << std::endl;
 }
 
 void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
@@ -374,7 +388,7 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
 
     VPNQueue * logQueue;
 
-    unsigned int killed_queues;
+    unsigned int killed_queues = 0;
     unsigned int queue_size = logQueues.size();
 
 
@@ -397,6 +411,7 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
           else
           {
             killed_queues ++;
+            std::cout << "killed_queues: " << killed_queues  << std::endl; 
           }
           delete(logFile);
         }
