@@ -35,7 +35,7 @@ class VPNQueue
 
 std::string make_daytime_string();
 
-bool processRequests(const unsigned int &, const unsigned int &, /*VPNQueue *,*/ VPNQueue *);
+bool processRequests(const unsigned int , const unsigned int , VPNQueue *);
 /* "processRequests" function opens one socket for receiving 
  * server requests from the distributor, when a request is received
  * it is validated and enqueued.
@@ -45,4 +45,4 @@ bool processRequests(const unsigned int &, const unsigned int &, /*VPNQueue *,*/
 */
 void requestManager( const unsigned int /*,VPNQueue **/, VPNLock *, VPNQueue *, VPNLock *);
 
-void logManager( const std::string &, std::vector< VPNQueue *> & );
+void logManager( const std::string , std::vector< VPNQueue *> & );

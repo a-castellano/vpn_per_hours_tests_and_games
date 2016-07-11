@@ -8,7 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <boost/thread.hpp> 
-#include <boost/asio.hpp> 
+
+//#include <boost/asio.hpp> 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include <unistd.h> //usleep
 
@@ -66,14 +70,20 @@ void VPNLock::releaseLock()
   c_mutex.unlock();
 }
 
-std::string make_daytime_string() {
-  time_t now = time(0);
-  return ctime(&now);
-}
 
-bool processRequests( const unsigned int &port,  const unsigned int &numthreads, VPNQueue * logQueue )
+bool processRequests( const unsigned int port,  const unsigned int numthreads, VPNQueue * logQueue )
 {
-  using boost::asio::ip::tcp;
+  //using boost::asio::ip::tcp;
+
+  // Socket variables
+
+  int sockfd, newsockfd;
+  socklen_t clilen;
+  char buffer[256];
+  struct sockaddr_in serv_addr, cli_addr;
+  int n;
+
+  // Log variables
 
   std::string *logFile;
   std::string *log;
@@ -93,28 +103,55 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
     std::string message("ACK");
     std::string received("Request received: ");
 
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), port);
-    tcp::acceptor acceptor(io_service, endpoint);
+    //Creating socket
 
-    tcp::socket socket(io_service);
-    tcp::iostream stream;
+    sockfd =  socket(AF_INET, SOCK_STREAM, 0);
 
-    boost::system::error_code ignored_error;
+    // clear address structure
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+
+    serv_addr.sin_family = AF_INET;
+     serv_addr.sin_addr.s_addr = INADDR_ANY;
+     serv_addr.sin_port = htons(port);
+
+     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+     {
+        std::cout << "ERROR on binding" << std::endl;
+     }
+     listen(sockfd,5000);
+
+     clilen = sizeof(cli_addr);
+
+     //newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
+    //boost::asio::io_service io_service;
+    //tcp::endpoint endpoint(tcp::v4(), port);
+    //tcp::acceptor acceptor(io_service, endpoint);
+
+    //tcp::socket socket(io_service);
+    //tcp::iostream stream;
+
+    //boost::system::error_code ignored_error;
+
 
   try
   {
 
     for(;;)
     {
-
-      acceptor.accept(*stream.rdbuf());
-      ss << stream.rdbuf();
-      stream.flush();
+      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+      bzero(buffer,256);
+      n = read(newsockfd,buffer,255);
+      close(newsockfd);
+      //std::cout << "n: " << n << std::endl;
+      //std::cout << "buffer: " << buffer << std::endl; 
+      //acceptor.accept(*stream.rdbuf());
+      //ss << stream.rdbuf();
+      //stream.flush();
       request = NULL;
-      request = new std::string( ss.str() );
+      request = new std::string( buffer );
       //boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
-      stream.close();
+      //stream.close();
 
       logFile = NULL;
       logFile = new std::string(noPointerLogFile);
@@ -184,12 +221,15 @@ bool processRequests( const unsigned int &port,  const unsigned int &numthreads,
   logFile = new std::string( kill_yourself );
   logQueue->Enqueue( logFile );
 
-
+/*
   stream.flush();
   stream.close();
   socket.close();
   io_service.stop();
   acceptor.close();
+*/
+  //close(newsockfd);
+  close(sockfd);
 
   noPointerLogFile.clear();
   kill_yourself.clear();
@@ -376,10 +416,9 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
     delete(request);
 
   }//for
-  std::cout << "Manager dead" << std::endl;
 }
 
-void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
+void logManager( const std::string logFolder , std::vector<VPNQueue *> &logQueues )
 {
     std::string *logFile;
     std::string *logPath;
@@ -411,7 +450,6 @@ void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueu
           else
           {
             killed_queues ++;
-            std::cout << "killed_queues: " << killed_queues  << std::endl; 
           }
           delete(logFile);
         }
