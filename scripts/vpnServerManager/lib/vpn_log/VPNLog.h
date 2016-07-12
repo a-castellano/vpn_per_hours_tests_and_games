@@ -6,6 +6,6 @@
 #endif
 
 #include <string>
+#include <boost/shared_ptr.hpp>
 
-bool writeLog( std::string *, std::string * );
-
+bool writeLog( boost::shared_ptr< std::string >, boost::shared_ptr< std::string > );

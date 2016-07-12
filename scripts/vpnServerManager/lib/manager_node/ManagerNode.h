@@ -8,6 +8,8 @@
 #include <string>
 #include <queue>
 #include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 class VPNLock
 {
@@ -22,18 +24,17 @@ class VPNLock
 class VPNQueue
 {
   public:
-    void Enqueue( std::string * );
-    std::string * Dequeue( );
+    void Enqueue( boost::shared_ptr< std::string > );
+    boost::shared_ptr< std::string > Dequeue( );
     bool empty();
 
   private:
-    std::queue<std::string *>  r_queue; //The queue which stores requests
+    std::queue< boost::shared_ptr< std::string > > r_queue;
     boost::mutex r_mutex;
 };
 
 
 
-std::string make_daytime_string();
 
 bool processRequests(const unsigned int , const unsigned int , VPNQueue *);
 /* "processRequests" function opens one socket for receiving 
@@ -45,4 +46,4 @@ bool processRequests(const unsigned int , const unsigned int , VPNQueue *);
 */
 void requestManager( const unsigned int /*,VPNQueue **/, VPNLock *, VPNQueue *, VPNLock *);
 
-void logManager( const std::string , std::vector< VPNQueue *> & );
+void logManager( const std::string &, std::vector< VPNQueue *> & );

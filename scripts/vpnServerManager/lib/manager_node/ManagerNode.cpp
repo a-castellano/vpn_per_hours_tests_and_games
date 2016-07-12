@@ -1,15 +1,17 @@
 // ManagerMode.cpp
 // Álvaro Castellano Vela - 24/06/2016
-
+#define BOOST_SP_USE_QUICK_ALLOCATOR
 #include "ManagerNode.h"
 #include <string>
 #include <iostream>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost/thread.hpp> 
+#include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
-//#include <boost/asio.hpp> 
+//#include <boost/asio.hpp>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -27,7 +29,7 @@ extern VPNQueue  requestsQueue;
 
 // Functions
 
-void VPNQueue::Enqueue(std::string *request)
+void VPNQueue::Enqueue( boost::shared_ptr< std::string > request )
 {
   r_mutex.lock();
   r_queue.push( request );
@@ -35,9 +37,9 @@ void VPNQueue::Enqueue(std::string *request)
 }
 
 
-std::string * VPNQueue::Dequeue( )
+boost::shared_ptr< std::string > VPNQueue::Dequeue( )
 {
-  std::string * data;
+  boost::shared_ptr< std::string > data;
   r_mutex.lock();
   while ( r_queue.empty()  )
   {
@@ -45,7 +47,8 @@ std::string * VPNQueue::Dequeue( )
     usleep(2000);
     r_mutex.lock();
   }
-  data = r_queue.front();
+  data = boost::make_shared< std::string >( *r_queue.front() );
+  //data = r_queue.front();
   r_queue.pop();
   r_mutex.unlock();
   return data;
@@ -85,23 +88,25 @@ bool processRequests( const unsigned int port,  const unsigned int numthreads, V
 
   // Log variables
 
-  std::string *logFile;
-  std::string *log;
+  boost::shared_ptr< std::string > logFile;
+  boost::shared_ptr< std::string > log;
   std::string noPointerLogFile("Proccesser.log");
   std::string kill_yourself("__KILL_YOURSELF__");
 
-  log = new std::string("Proccesser started!");
-  logFile = new std::string(noPointerLogFile);
+  //Processer variables
+  boost::shared_ptr< std::string > request;
+  std::string message("ACK");
+  std::string received("Request received: ");
+
+  // The function begins
+
+  log = boost::make_shared< std::string >( "Proccesser started!" );
+  logFile = boost::make_shared< std::string >( noPointerLogFile );
 
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
-
-
-    std::stringstream ss;
-    std::string *request;
-
-    std::string message("ACK");
-    std::string received("Request received: ");
+  logFile.reset();
+  log.reset();
 
     //Creating socket
 
@@ -148,78 +153,79 @@ bool processRequests( const unsigned int port,  const unsigned int numthreads, V
       //acceptor.accept(*stream.rdbuf());
       //ss << stream.rdbuf();
       //stream.flush();
-      request = NULL;
-      request = new std::string( buffer );
+
+      request =  boost::make_shared< std::string >( buffer );
       //boost::asio::write(socket, boost::asio::buffer(message), boost::asio::transfer_all(), ignored_error);
       //stream.close();
 
-      logFile = NULL;
-      logFile = new std::string(noPointerLogFile);
-      log = NULL;
-      log = new std::string( received + *request );
+      logFile = boost::make_shared< std::string >( noPointerLogFile );
+      log = boost::make_shared< std::string >( /* received +*/ *request );
+
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
+      logFile.reset();
+      log.reset();
 
       if( *request == kill_yourself )
       {
-         logFile = NULL;
-         logFile = new std::string(noPointerLogFile);
-         log = NULL;
-         log = new std::string("Sending killing to the managers.");
+         logFile = boost::make_shared< std::string >( noPointerLogFile );
+         log = boost::make_shared< std::string >( "Sending killing to the managers." );
          logQueue->Enqueue( logFile );
          logQueue->Enqueue( log );
+         logFile.reset();
+         log.reset();
 
-         delete(request);
+         request.reset();
 
          for (unsigned int t=0 ; t < numthreads; t++) {
-            request = NULL;
-            request = new std::string( kill_yourself );
+            request = boost::make_shared< std::string >(  kill_yourself );
             requestsQueue.Enqueue( request );
+            request.reset();
          }
          break;
       }
-      else
+      else //request is not KILL_YOURSELF
       {
         requestsQueue.Enqueue( request );
+        request.reset();
       }
 
-      ss.clear();// NOT USED
-      ss.str("");
+      //ss.clear();// NOT USED
+      //ss.str("");
 
-      logFile = NULL;
-      logFile = new std::string(noPointerLogFile);
+      logFile = boost::make_shared< std::string >( noPointerLogFile );
+      log = boost::make_shared< std::string >( "Request enqueued." );
       logQueue->Enqueue( logFile );
-      log = NULL;
-      log = new std::string("Request enqueued.");
       logQueue->Enqueue( log );
+      logFile.reset();
+      log.reset();
     }//for
 
   }
   catch (std::exception &e) {
 
-    logFile = NULL;
-    logFile = new std::string(noPointerLogFile);
-    log = NULL;
-    log = new std::string("ERROR: "  + std::string(e.what()));
+    logFile = boost::make_shared< std::string >( noPointerLogFile );
+    log = boost::make_shared< std::string >( e.what() );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
+    logFile.reset();
+    log.reset();
     return false;
 
   }
 
-  logFile = NULL;
-  logFile = new std::string(noPointerLogFile);
-  log = NULL;
-  log = new std::string("Proccesser finished.");
+  logFile = boost::make_shared< std::string >( noPointerLogFile );
+  log = boost::make_shared< std::string >( "Proccesser finished." );
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
-  //log.clear();
+  logFile.reset();
+  log.reset();
 
   //The only time we enqueue one unique item
   
-  logFile = NULL;
-  logFile = new std::string( kill_yourself );
+  logFile = boost::make_shared< std::string >(  kill_yourself );
   logQueue->Enqueue( logFile );
+  logFile.reset();
 
 /*
   stream.flush();
@@ -240,7 +246,7 @@ bool processRequests( const unsigned int port,  const unsigned int numthreads, V
 void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue * logQueue, VPNLock * requestLock )
 {
 
-  std::string *request;
+  boost::shared_ptr< std::string > request;
 
   std::string command;
   std::string token;
@@ -266,41 +272,40 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
 
   Server *server;
 
-  std::string *logFile;
-  std::string *log;
+  boost::shared_ptr< std::string > logFile;
+  boost::shared_ptr< std::string > log;
 
-  logFile = NULL;
-  logFile = new std::string(noPointerLogFile);
-  log = NULL;
-  log = new std::string( std::string( "Manager ") + std::to_string( thread_id ) + std::string(" started." ) );
+  logFile = boost::make_shared< std::string >( noPointerLogFile );
+  log = boost::make_shared< std::string >( std::string( "Manager ") + std::to_string( thread_id ) + std::string(" started." ) );
   logQueue->Enqueue( logFile );
   logQueue->Enqueue( log );
+  logFile.reset();
+  log.reset();
 
   for(;;) // I will be here forever
   {
-    request = NULL;
+    request.reset();
     request = requestsQueue.Dequeue( );
 
-    logFile = NULL;
-    logFile = new std::string(noPointerLogFile);
-    log = NULL;
-    log = new std::string( received + *request );
+    logFile = boost::make_shared< std::string >( noPointerLogFile );
+    log = boost::make_shared< std::string >( /*received +*/ *request );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
+    logFile.reset();
+    log.reset();
 
 
     if( *request == kill_yourself )
     {
-      logFile = NULL;
-      logFile = new std::string(noPointerLogFile);
-      log = NULL;
-      log = new std::string( "Kill message received... R.I.P." );
+      logFile = boost::make_shared< std::string >( noPointerLogFile );
+      log = boost::make_shared< std::string >( "Kill message received... R.I.P." ); 
       logQueue->Enqueue( logFile );
       logQueue->Enqueue( log );
-      logFile = NULL;
-      logFile = new std::string(kill_yourself);
+      logFile.reset();
+      log.reset();
+      logFile = boost::make_shared< std::string >( kill_yourself );
       logQueue->Enqueue( logFile );
-      //delete( request );
+      logFile.reset();
       break;
 
     }
@@ -406,23 +411,22 @@ void requestManager( const unsigned int thread_id, VPNLock * curlLock, VPNQueue 
 
 */
     usleep( (rand() % 10 + 1) * 10000 );
-    logFile = NULL;
-    logFile = new std::string(noPointerLogFile);
-    log = NULL;
-    log = new std::string( processed );
+    logFile = boost::make_shared< std::string >( noPointerLogFile );
+    log = boost::make_shared< std::string >( processed );
     logQueue->Enqueue( logFile );
     logQueue->Enqueue( log );
-
-    delete(request);
+    logFile.reset();
+    log.reset();
+    request.reset();
 
   }//for
 }
 
-void logManager( const std::string logFolder , std::vector<VPNQueue *> &logQueues )
+void logManager( const std::string &logFolder , std::vector<VPNQueue *> &logQueues )
 {
-    std::string *logFile;
-    std::string *logPath;
-    std::string *log;
+    boost::shared_ptr< std::string > logFile;
+    boost::shared_ptr< std::string > logPath;
+    boost::shared_ptr< std::string > log;
     std::string kill_yourself( "__KILL_YOURSELF__" );
 
     VPNQueue * logQueue;
@@ -441,17 +445,17 @@ void logManager( const std::string logFolder , std::vector<VPNQueue *> &logQueue
           logFile = logQueue->Dequeue( );
           if( *logFile != kill_yourself )
           {
-            logPath = NULL;
-            logPath = new std::string( logFolder + *logFile );
-            log = NULL;
+            logPath = boost::make_shared< std::string >( logFolder + *logFile );
             log = logQueue->Dequeue( );
             writeLog( logPath , log );
+            logFile.reset();
+            log.reset();
+            logPath.reset();
           }
           else
           {
             killed_queues ++;
           }
-          delete(logFile);
         }
       }
       usleep(100000);

@@ -1,6 +1,7 @@
 // VPNLog.cpp
 // Álvaro Castellano Vela - 25/06/2016
 
+#define BOOST_SP_USE_QUICK_ALLOCATOR
 #include "VPNLog.h"
 #include <iostream>
 #include <fstream>
@@ -8,13 +9,17 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include <boost/shared_ptr.hpp>
 
-bool writeLog(  std::string * logPath,  std::string * log )
+bool writeLog(  boost::shared_ptr< std::string > path,  boost::shared_ptr< std::string > data )
 {
 
   time_t rawtime;
   struct tm * timeinfo;
   char buffer[80];
+
+  boost::shared_ptr< std::string > logPath( path );
+  boost::shared_ptr< std::string > log( data );
 
   time (&rawtime);
   timeinfo = localtime(&rawtime);
@@ -34,7 +39,7 @@ bool writeLog(  std::string * logPath,  std::string * log )
   outfile.close();
 
   str.clear();
-  delete( logPath );
-  delete( log );
+  logPath.reset();
+  log.reset();
   return true;
 }

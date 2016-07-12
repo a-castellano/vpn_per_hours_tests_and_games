@@ -8,11 +8,11 @@ from time import sleep
 #s.close()
 
 
-for i in range(3000):
+for i in range(100):
     s = socket.socket()
     s.connect(("localhost", 8085))
-    s.send( "YOLO "+str(i) )
-    sleep(0.4)
+    s.send( "YOLO_YOLOR "+str(i) )
+    sleep(0.5)
     print( "SENDING YOLO "+str(i) )
     s.close()
 
