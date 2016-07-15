@@ -18,7 +18,9 @@ using namespace std;
 // Global variables
 
 VPNQueue requestsQueue;
-
+vector<VPNQueue> logQueues;
+VPNLock curlLock;
+VPNLock memoryLock;
 // Support Functions
 
 bool legal_int(char *str)
@@ -57,11 +59,9 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   //VPNQueue *requestsQueue = new VPNQueue();
 
-  VPNLock * curlLock = new VPNLock();
-  VPNLock * requestLock = new VPNLock(); 
-
-  VPNQueue *logQueue;// = new VPNQueue();
-  vector<VPNQueue *> logQueues;
+  //VPNQueue *logQueue;// = new VPNQueue();
+  //vector<VPNQueue *> logQueues;
+  logQueues.reserve(numthreads+1);
 
   boost::thread_group threads;
 
@@ -71,16 +71,16 @@ int main( int argc, char *argv[] ) // port number and numthreads
 
   for( unsigned int i = 0; i < numthreads ; i++ )
   {
-    logQueue = new VPNQueue();
-    threads.add_thread( new boost::thread( requestManager, i, curlLock, logQueue, requestLock ) );
-    logQueues.push_back( logQueue );
+    //logQueue = new VPNQueue();
+    threads.add_thread( new boost::thread( requestManager, i, curlLock, logQueues[i], requestLock, memoryLock ) );
+    //logQueues.push_back( logQueue );
   }
 
-  logQueue = new VPNQueue();
-  manager = boost::thread( processRequests, portnumber, numthreads, logQueue );
-  logQueues.push_back( logQueue ); 
+  //logQueue = new VPNQueue();
+  manager = boost::thread( processRequests, portnumber, numthreads, logQueues[numthreads], memoryLock );
+  //logQueues.push_back( logQueue );
 
-  logger = boost::thread( logManager, logFolder, logQueues ); 
+  logger = boost::thread( logManager, logFolder, logQueues, memoryLock);
 
   cout << "Port Number: " << portnumber << endl;
   cout << "Number of threads: " << numthreads << endl;
@@ -88,15 +88,20 @@ int main( int argc, char *argv[] ) // port number and numthreads
   threads.join_all();
 
   killMsg = boost::shared_ptr< std::string >( new std::string( "__KILL_YOURSELF__" ) );
-  logQueue->Enqueue(killMsg);
+  logQueues[numthreads].Enqueue(killMsg);
   killMsg.reset();
 
   logger.join();
 
-  for( unsigned int i = 0; i < logQueues.size() ; i++ )
-  {
-    free( logQueues[i] );
-  }
+  //for( unsigned int i = 0; i < logQueues.size() ; i++ )
+  //{
+  //  logQueue = logQueues[i];
+  //  free( logQueue );
+  //}
+
+  free(curlLock);
+  free(requestLock);
+  free(memoryLock);
 
   cout << "End" << endl;
 

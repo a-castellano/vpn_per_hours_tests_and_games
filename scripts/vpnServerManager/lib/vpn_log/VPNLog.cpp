@@ -11,15 +11,17 @@
 #include <ctime>
 #include <boost/shared_ptr.hpp>
 
-bool writeLog(  boost::shared_ptr< std::string > path,  boost::shared_ptr< std::string > data )
+bool writeLog(  boost::shared_ptr< std::string > path,  boost::shared_ptr< std::string > data)
 {
 
   time_t rawtime;
   struct tm * timeinfo;
   char buffer[80];
 
-  boost::shared_ptr< std::string > logPath( path );
-  boost::shared_ptr< std::string > log( data );
+//  memoryLock->getLock();
+//  boost::shared_ptr< std::string > logPath( path );
+//  boost::shared_ptr< std::string > log( data );
+//  memoryLock->releaseLock();
 
   time (&rawtime);
   timeinfo = localtime(&rawtime);
@@ -29,17 +31,17 @@ bool writeLog(  boost::shared_ptr< std::string > path,  boost::shared_ptr< std::
 
   std::ofstream outfile;
 
-  outfile.open( *logPath , std::ios_base::app );
+  outfile.open( *path , std::ios_base::app );
   outfile << "[";
   outfile << str;
   outfile << "] - ";
-  outfile << *log;
+  outfile << *data;
   outfile << "\n";
 
   outfile.close();
 
   str.clear();
-  logPath.reset();
-  log.reset();
+  //logPath.reset();
+  //log.reset();
   return true;
 }

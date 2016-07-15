@@ -8,7 +8,7 @@ from time import sleep
 #s.close()
 
 
-for i in range(100):
+for i in range(10000):
     s = socket.socket()
     s.connect(("localhost", 8085))
     s.send( "YOLO_YOLOR "+str(i) )
