@@ -36,7 +36,7 @@ class VPNQueue
 
 
 
-bool processRequests(const unsigned int , const unsigned int , VPNQueue , VPNLock *);
+bool processRequests(const unsigned int , const unsigned int);
 /* "processRequests" function opens one socket for receiving 
  * server requests from the distributor, when a request is received
  * it is validated and enqueued.
@@ -44,8 +44,8 @@ bool processRequests(const unsigned int , const unsigned int , VPNQueue , VPNLoc
  * If the received request is "__KILL_YOURSELF__" the manager will send the same message
  * to all the requestsManagers wich will commit suicide
 */
-void requestManager( const unsigned int /*,VPNQueue **/, VPNLock *, VPNQueue , VPNLock *, VPNLock *);
+void requestManager( const unsigned int );
 
-void logManager( const std::string &, std::vector< VPNQueue > & , VPNLock *);
+void logManager( const std::string & );
 
-bool writeLog( boost::shared_ptr< std::string >, boost::shared_ptr< std::string >, VPNLock * );
+bool writeLog( boost::shared_ptr< std::string >, boost::shared_ptr< std::string > );
