@@ -5,7 +5,9 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -508,37 +510,64 @@ void logManager(const std::string &logFolder) {
 bool writeLog(boost::shared_ptr<std::string> path,
               boost::shared_ptr<std::string> data) {
 
-  time_t rawtime;
-  struct tm *timeinfo;
-  char buffer[80];
+  // auto t;// = std::time(nullptr);
+  // auto tm;// = *std::localtime(&t);
+
+  // time_t *rawtime = new time_t;
+  // struct tm *timeinfo;
+  // char buffer[80];
+
+  time_t *t;
+  struct tm *now;
 
   memoryLock.getLock();
+  t = new time_t(std::time(0));
+  now = std::localtime(t);
+
   boost::shared_ptr<std::string> logPath(path);
   boost::shared_ptr<std::string> log(data);
   memoryLock.releaseLock();
 
-  //time(&rawtime);
-  //timeinfo = localtime(&rawtime);
+  // time(rawtime);
+  // timeinfo = localtime(rawtime);
 
-  //strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
-  //std::string str(buffer);
+  // strftime(buffer, 80, "%d-%m-%Y %H:%M:%S", timeinfo);
+  // std::string str(buffer);
 
   std::ofstream outfile;
 
   memoryLock.getLock();
   outfile.open(*logPath, std::ios_base::app);
   outfile << "[";
-  //outfile << str;
+  outfile << (now->tm_year + 1900) << '/';
+  if (now->tm_mon < 9)
+
+    outfile << "0";
+
+  outfile << (now->tm_mon + 1) << '/';
+  if (now->tm_mday < 10)
+    outfile << "0";
+  outfile << now->tm_mday << '-';
+  if (now->tm_hour < 10)
+    outfile << "0";
+  outfile << now->tm_hour << ':';
+  if (now->tm_min < 10)
+    outfile << "0";
+  outfile << now->tm_min << ':';
+  if (now->tm_sec < 10)
+    outfile << "0";
+  outfile << now->tm_sec;
+
+  // outfile << std::put_time(&tm, "%d/%m/%Y-%H:%M:%S");
   outfile << "] - ";
   outfile << *log;
   outfile << "\n";
 
   outfile.close();
-
-  //str.clear();
+  free(t);
+  // str.clear();
   logPath.reset();
   log.reset();
-  //free(timeinfo);
   memoryLock.releaseLock();
   return true;
 }
