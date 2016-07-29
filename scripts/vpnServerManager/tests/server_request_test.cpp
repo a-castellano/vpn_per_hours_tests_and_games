@@ -1,6 +1,9 @@
 #define BOOST_TEST_MODULE ServerRequestTest
 #include <boost/test/unit_test.hpp>
 #include <ServerRequest.h>
+#include <VPNLock.h>
+
+VPNLock memoryLock;
 
 int add( int i, int j ) { return i+j+1; }
 

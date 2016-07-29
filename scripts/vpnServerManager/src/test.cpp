@@ -1,7 +1,10 @@
 #include <iostream>
 #include <ServerRequest.h>
+#include <VPNLock.h>
 
 using namespace std;
+
+VPNLock memoryLock;
 
 int main(int argc, char *argv[])
 {

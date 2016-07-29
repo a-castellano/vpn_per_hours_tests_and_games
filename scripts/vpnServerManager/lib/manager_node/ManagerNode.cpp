@@ -22,10 +22,10 @@
 #include <unistd.h> //usleep
 
 // VPN PROJECT LIBRARIES
-//#include <VPNLog.h>
 #include <DatabaseHandler.h>
 #include <ServerFactory.h>
 #include <ServerRequest.h>
+#include <VPNLock.h>
 
 extern VPNQueue requestsQueue;
 extern std::vector<VPNQueue *> logQueues;
@@ -61,10 +61,6 @@ bool VPNQueue::empty() {
   r_mutex.unlock();
   return is_empty;
 }
-
-void VPNLock::getLock() { c_mutex.lock(); }
-
-void VPNLock::releaseLock() { c_mutex.unlock(); }
 
 bool processRequests(const unsigned int port, const unsigned int numthreads) {
   // using boost::asio::ip::tcp;
@@ -144,8 +140,9 @@ bool processRequests(const unsigned int port, const unsigned int numthreads) {
       // acceptor.accept(*stream.rdbuf());
       // ss << stream.rdbuf();
       // stream.flush();
-
+      memoryLock.getLock();
       request = boost::make_shared<std::string>(buffer);
+      memoryLock.releaseLock();
       // boost::asio::write(socket, boost::asio::buffer(message),
       // boost::asio::transfer_all(), ignored_error);
       // stream.close();
@@ -269,32 +266,40 @@ void requestManager(const unsigned int thread_id) {
 
   boost::shared_ptr<std::string> request;
 
-  std::string command;
-  std::string token;
+  boost::shared_ptr<std::string> command;
+  boost::shared_ptr<std::string> token;
 
   std::string address("paula.es.una.ninja");
   std::string user("vpn");
   std::string password("XLRc3H1y4Db0G4qR630Qk2xPF3D88P");
   std::string database("vpn");
 
-  DatabaseHandler *db;
-  DatabaseHandler *db_zones;
+  DatabaseHandler * db;
+  DatabaseHandler * db_zones;
+
   unsigned int zone;
   std::vector<std::string> providers;
   std::string selectedProvider;
   unsigned int providerRandomId;
 
-  std::string severName;
+  boost::shared_ptr<std::string> severName;
+
   std::string kill_yourself("__KILL_YOURSELF__");
   std::string processed("Request totally processed.");
   std::string received("Request reveived -> ");
+  std::string correct("The request is correct");
+  std::string incorrect("The request is not correct");
+  std::string errordb("Error on database connection");
+
   std::string noPointerLogFile =
       std::string("Manager_") + std::to_string(thread_id) + std::string(".log");
   std::string noPointerStarted = std::string("Manager ") +
                                  std::to_string(thread_id) +
                                  std::string(" started.");
 
-  Server *server;
+  boost::shared_ptr<ServerRequest> serverRequest;
+  boost::shared_ptr<Server> server;
+  // Server *server;
 
   boost::shared_ptr<std::string> logFile;
   boost::shared_ptr<std::string> log;
@@ -335,8 +340,11 @@ void requestManager(const unsigned int thread_id) {
 
       logQueues[thread_id]->Enqueue(logFile);
       logQueues[thread_id]->Enqueue(log);
+
+      memoryLock.getLock();
       logFile.reset();
       log.reset();
+      memoryLock.releaseLock();
 
       memoryLock.getLock();
       logFile = boost::make_shared<std::string>(kill_yourself);
@@ -350,6 +358,106 @@ void requestManager(const unsigned int thread_id) {
     }
 
     // Process the request
+
+    serverRequest = boost::make_shared<ServerRequest>(*request, 1);
+
+    if (serverRequest->isCorrect()) {
+      memoryLock.getLock();
+      logFile = boost::make_shared<std::string>(noPointerLogFile);
+      log = boost::make_shared<std::string>(correct);
+      memoryLock.releaseLock();
+
+      logQueues[thread_id]->Enqueue(logFile);
+      logQueues[thread_id]->Enqueue(log);
+
+      memoryLock.getLock();
+      logFile.reset();
+      log.reset();
+      memoryLock.releaseLock();
+
+      memoryLock.getLock();
+      command = boost::make_shared<std::string>(serverRequest->getCommand());
+      token = boost::make_shared<std::string>(serverRequest->getToken());
+      logFile = boost::make_shared<std::string>(noPointerLogFile);
+      log = boost::make_shared<std::string>(*command);
+      memoryLock.releaseLock();
+
+      logQueues[thread_id]->Enqueue(logFile);
+      logQueues[thread_id]->Enqueue(log);
+
+      memoryLock.getLock();
+      logFile.reset();
+      log.reset();
+      memoryLock.releaseLock();
+
+      memoryLock.getLock();
+      db = new DatabaseHandler(address, 3306, user, password,
+                                               database);
+      memoryLock.releaseLock();
+
+      if (!db->dataIsWellFormed()) {
+        memoryLock.getLock();
+        logFile = boost::make_shared<std::string>(noPointerLogFile);
+        log = boost::make_shared<std::string>(errordb);
+        memoryLock.releaseLock();
+
+        logQueues[thread_id]->Enqueue(logFile);
+        logQueues[thread_id]->Enqueue(log);
+
+        memoryLock.getLock();
+        logFile.reset();
+        log.reset();
+        memoryLock.releaseLock();
+
+        memoryLock.getLock();
+        delete(db);
+        memoryLock.releaseLock();
+      }
+
+      else {
+        memoryLock.getLock();
+        zone = db->getServerZoneFromToken(*token);
+        severName = boost::make_shared<std::string>(db->setServerName(*token, zone));
+        memoryLock.releaseLock();
+
+        memoryLock.getLock();
+        logFile = boost::make_shared<std::string>(noPointerLogFile);
+        log = boost::make_shared<std::string>(*severName);
+        memoryLock.releaseLock();
+
+        logQueues[thread_id]->Enqueue(logFile);
+        logQueues[thread_id]->Enqueue(log);
+
+        memoryLock.getLock();
+        logFile.reset();
+        log.reset();
+        memoryLock.releaseLock();
+
+        memoryLock.getLock();
+        delete(db);
+        memoryLock.releaseLock();
+      }
+
+    } else {
+
+      memoryLock.getLock();
+      logFile = boost::make_shared<std::string>(noPointerLogFile);
+      log = boost::make_shared<std::string>(incorrect);
+      memoryLock.releaseLock();
+
+      logQueues[thread_id]->Enqueue(logFile);
+      logQueues[thread_id]->Enqueue(log);
+
+      memoryLock.getLock();
+      logFile.reset();
+      log.reset();
+      memoryLock.releaseLock();
+    }
+
+    memoryLock.getLock();
+    serverRequest.reset();
+    memoryLock.releaseLock();
+
     /*
         ServerRequest *serverRequest = new ServerRequest( request );
 

@@ -16,15 +16,15 @@
 #include <boost/algorithm/string.hpp>
 #endif
 
-class ServerRequest
-{
-        public:
-                explicit ServerRequest( const std::string & );
-                const bool isCorrect( void );
-                const std::string getCommand( void );
-		const std::string getToken( void );
+class ServerRequest {
+public:
+  explicit ServerRequest(const std::string &);
+  ServerRequest(const std::string &, const int &);
+  const bool isCorrect(void);
+  const std::string getCommand(void);
+  const std::string getToken(void);
 
-	private:
-		std::vector<std::string> processedRequest;
-		bool correctRequest;
+private:
+  std::vector<std::string> processedRequest;
+  bool correctRequest;
 };

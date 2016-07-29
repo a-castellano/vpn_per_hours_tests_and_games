@@ -10,7 +10,7 @@
 #include <boost/thread.hpp>
 
 // Project libraries
-
+#include <VPNLock.h>
 #include <ManagerNode.h>
 
 using namespace std;

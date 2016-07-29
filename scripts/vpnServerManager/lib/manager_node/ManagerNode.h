@@ -11,16 +11,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
-class VPNLock
-{
-  public:
-    void getLock();
-    void releaseLock();
-
-  private:
-    boost::shared_mutex c_mutex;
-};
-
 class VPNQueue
 {
   public:

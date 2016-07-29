@@ -1,22 +1,13 @@
 // serverRequest.h
 // Álvaro Castellano Vela 23/02/2016
 
-#ifndef SERVERREQUEST_H
 #include "ServerRequest.h"
-#endif
-
-#ifndef STRING
 #include <string>
-#endif
-
-#ifndef VECTOR
 #include <vector>
-#endif
-
-#ifndef BOOST_ALGORITHM_STRING
 #include <boost/algorithm/string.hpp>
-#endif
+#include <VPNLock.h>
 
+extern VPNLock memoryLock;
 
 ServerRequest::ServerRequest( const std::string & request )
 {
@@ -33,6 +24,27 @@ ServerRequest::ServerRequest( const std::string & request )
 		}
 	}
 }
+
+
+ServerRequest::ServerRequest( const std::string & request, const int & threaded )
+{
+  memoryLock.getLock();
+	boost::split(processedRequest,request,boost::is_any_of("/"));
+  memoryLock.releaseLock();
+	correctRequest = false;
+        if ( processedRequest.size() == 2 )
+	{
+		if ( processedRequest[0] == "create" || processedRequest[0] == "destroy" )
+		{
+			if ( processedRequest[1].size() == 60 )
+			{
+				correctRequest = true;
+			}
+		}
+	}
+}
+
+
 
 const bool ServerRequest::isCorrect( void )
 {

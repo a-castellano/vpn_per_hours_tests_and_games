@@ -19,14 +19,15 @@ INCLUDE_DIRECTORIES(lib/log)
 INCLUDE_DIRECTORIES(lib/server)
 INCLUDE_DIRECTORIES(lib/server_pointer)
 INCLUDE_DIRECTORIES(lib/ssh_tester)
-INCLUDE_DIRECTORIES(lib/vpn_log)
+INCLUDE_DIRECTORIES(lib/vpn_lock)
 INCLUDE_DIRECTORIES(lib/manager_node) 
 
 
-ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp )
+ADD_EXECUTABLE( main src/test.cpp lib/server_request/ServerRequest.cpp lib/vpn_lock/VPNLock.cpp )
 TARGET_LINK_LIBRARIES( main ${CONAN_LIBS})
 
-ADD_EXECUTABLE( server_request_test tests/server_request_test.cpp lib/server_request/ServerRequest.cpp )
+ADD_EXECUTABLE( server_request_test tests/server_request_test.cpp lib/server_request/ServerRequest.cpp
+  lib/vpn_lock/VPNLock.cpp )
 TARGET_LINK_LIBRARIES( server_request_test ${CONAN_LIBS} )
 
 ADD_EXECUTABLE( mysql_test src/mysql_test.cpp lib/database_handler/DatabaseHandler.cpp )
@@ -63,10 +64,10 @@ TARGET_LINK_LIBRARIES( ssh_test ${CONAN_LIBS} ssh)
 #  lib/ssh_tester/sshTester.cpp )
 #TARGET_LINK_LIBRARIES( socket_test ${CONAN_LIBS} ${CMAKE_THREAD_LIBS_INIT}  mysqlcppconn ssh )
 
-ADD_EXECUTABLE( VPNManagerDaemon src/VPNManagerDeamon.cpp lib/manager_node/ManagerNode.cpp 
+ADD_EXECUTABLE( VPNManagerDaemon src/VPNManagerDeamon.cpp lib/manager_node/ManagerNode.cpp
   lib/server_request/ServerRequest.cpp lib/server/Server.cpp lib/server/DigitalOceanServer.cpp
   lib/server/VultrServer.cpp lib/server/ServerFactory.cpp lib/database_handler/DatabaseHandler.cpp
-  lib/server_pointer/ServerPointer.cpp lib/ssh_tester/sshTester.cpp )
+  lib/server_pointer/ServerPointer.cpp lib/ssh_tester/sshTester.cpp lib/vpn_lock/VPNLock.cpp )
 TARGET_LINK_LIBRARIES( VPNManagerDaemon ${CONAN_LIBS}  mysqlcppconn ssh )
 
 
